@@ -1,0 +1,536 @@
+// ============================================================
+// GRUPO ELSHADAY — Modelo de dados
+// Multi-tenant: toda entidade de conteúdo pertence a uma Church,
+// preparando a plataforma para operar como SaaS multi-igrejas.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------- Tenancy ----------------
+
+model Church {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  city      String?
+  logoUrl   String?
+  // identidade visual própria por igreja (tema do tenant)
+  primaryColor String @default("#D4AF37")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users           User[]
+  teams           Team[]
+  devotionals     Devotional[]
+  prayerRequests  PrayerRequest[]
+  prayerCircles   PrayerCircle[]
+  events          Event[]
+  missions        Mission[]
+  badges          Badge[]
+  posts           Post[]
+  seasons         Season[]
+  schedules       Schedule[]
+  libraryItems    LibraryItem[]
+  weeklyChallenges WeeklyChallenge[]
+}
+
+// ---------------- Usuários & RBAC ----------------
+
+enum Role {
+  ADMIN
+  PASTOR
+  LIDER
+  VICE_LIDER
+  MEMBRO
+  VISITANTE
+}
+
+model User {
+  id           String    @id @default(cuid())
+  churchId     String
+  church       Church    @relation(fields: [churchId], references: [id])
+  email        String    @unique
+  passwordHash String
+  name         String
+  nickname     String?
+  avatarUrl    String?
+  bannerUrl    String?
+  bio          String?
+  favoriteVerse String?
+  birthDate    DateTime?
+  phone        String?
+  city         String?
+  role         Role      @default(MEMBRO)
+  joinedChurchAt DateTime?
+  teamId       String?
+  team         Team?     @relation("TeamMembers", fields: [teamId], references: [id])
+  leaderId     String?
+  leader       User?     @relation("Discipleship", fields: [leaderId], references: [id])
+  disciples    User[]    @relation("Discipleship")
+  // dupla espiritual (parceiro de oração)
+  duoPartnerId String?
+  refreshTokenHash String?
+  xpTotal      Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  streak            Streak?
+  xpTransactions    XpTransaction[]
+  devotionalEntries DevotionalCompletion[]
+  prayerRequests    PrayerRequest[]
+  intercessions     PrayerIntercession[]
+  missionEntries    MissionCompletion[]
+  eventAttendances  EventAttendance[]
+  circleAttendances CircleAttendance[]
+  userBadges        UserBadge[]
+  posts             Post[]
+  comments          Comment[]
+  reactions         Reaction[]
+  notifications     Notification[]
+  growthAreas       GrowthArea[]
+  journalEntries    JournalEntry[]
+  scheduleSlots     ScheduleSlot[]
+  ledTeams          Team[] @relation("TeamLeader")
+  viceTeams         Team[] @relation("TeamVice")
+  devotionalsAuthored Devotional[]
+  circlesLed        PrayerCircle[]
+  eventsCreated     Event[]
+}
+
+// ---------------- Equipes ----------------
+
+model Team {
+  id        String  @id @default(cuid())
+  churchId  String
+  church    Church  @relation(fields: [churchId], references: [id])
+  name      String
+  color     String  @default("#D4AF37")
+  photoUrl  String?
+  leaderId  String?
+  leader    User?   @relation("TeamLeader", fields: [leaderId], references: [id])
+  viceId    String?
+  vice      User?   @relation("TeamVice", fields: [viceId], references: [id])
+  xpTotal   Int     @default(0)
+  createdAt DateTime @default(now())
+
+  members User[] @relation("TeamMembers")
+}
+
+// ---------------- Devocional & Streak ----------------
+
+model Devotional {
+  id        String   @id @default(cuid())
+  churchId  String
+  church    Church   @relation(fields: [churchId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  date      DateTime @db.Date
+  theme     String
+  verse     String
+  verseRef  String
+  body      String
+  imageUrl  String?
+  videoUrl  String?
+  audioUrl  String?
+  question  String?
+  createdAt DateTime @default(now())
+
+  completions DevotionalCompletion[]
+
+  @@unique([churchId, date])
+}
+
+model DevotionalCompletion {
+  id           String     @id @default(cuid())
+  devotionalId String
+  devotional   Devotional @relation(fields: [devotionalId], references: [id])
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  note         String?
+  favorite     Boolean    @default(false)
+  completedAt  DateTime   @default(now())
+
+  @@unique([devotionalId, userId])
+}
+
+model Streak {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+  current       Int       @default(0)
+  longest       Int       @default(0)
+  lastActivity  DateTime?
+}
+
+// ---------------- Oração ----------------
+
+enum PrayerVisibility {
+  PUBLICO
+  LIDERANCA
+  PRIVADO
+}
+
+model PrayerRequest {
+  id          String   @id @default(cuid())
+  churchId    String
+  church      Church   @relation(fields: [churchId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  body        String
+  visibility  PrayerVisibility @default(PUBLICO)
+  answered    Boolean  @default(false)
+  testimony   String?
+  live        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  intercessions PrayerIntercession[]
+}
+
+model PrayerIntercession {
+  id        String        @id @default(cuid())
+  requestId String
+  request   PrayerRequest @relation(fields: [requestId], references: [id])
+  userId    String
+  user      User          @relation(fields: [userId], references: [id])
+  createdAt DateTime      @default(now())
+
+  @@unique([requestId, userId])
+}
+
+model PrayerCircle {
+  id        String   @id @default(cuid())
+  churchId  String
+  church    Church   @relation(fields: [churchId], references: [id])
+  leaderId  String
+  leader    User     @relation(fields: [leaderId], references: [id])
+  name      String
+  theme     String?
+  date      DateTime
+  location  String?
+  online    Boolean  @default(false)
+  materials String?
+  verses    String?
+  summary   String?
+  createdAt DateTime @default(now())
+
+  attendances CircleAttendance[]
+}
+
+model CircleAttendance {
+  id       String       @id @default(cuid())
+  circleId String
+  circle   PrayerCircle @relation(fields: [circleId], references: [id])
+  userId   String
+  user     User         @relation(fields: [userId], references: [id])
+  createdAt DateTime    @default(now())
+
+  @@unique([circleId, userId])
+}
+
+// ---------------- Eventos ----------------
+
+enum EventType {
+  CULTO
+  RETIRO
+  CONGRESSO
+  ACAMPAMENTO
+  LAZER
+  EVANGELISMO
+  TREINAMENTO
+  REUNIAO
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  churchId    String
+  church      Church    @relation(fields: [churchId], references: [id])
+  creatorId   String
+  creator     User      @relation(fields: [creatorId], references: [id])
+  type        EventType
+  title       String
+  description String?
+  bannerUrl   String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  location    String?
+  lat         Float?
+  lng         Float?
+  xpReward    Int       @default(80)
+  checkinCode String    @unique @default(cuid()) // conteúdo do QR Code
+  createdAt   DateTime  @default(now())
+
+  attendances EventAttendance[]
+}
+
+enum AttendanceStatus {
+  CONFIRMADO
+  CHECKIN
+}
+
+model EventAttendance {
+  id      String @id @default(cuid())
+  eventId String
+  event   Event  @relation(fields: [eventId], references: [id])
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+  status  AttendanceStatus @default(CONFIRMADO)
+  note    String?
+  checkedInAt DateTime?
+  createdAt   DateTime @default(now())
+
+  @@unique([eventId, userId])
+}
+
+// ---------------- Missões & Desafios ----------------
+
+enum MissionFrequency {
+  DIARIA
+  SEMANAL
+  ESPECIAL
+}
+
+enum GrowthAreaKey {
+  PALAVRA
+  ORACAO
+  SERVICO
+  COMUNHAO
+  EVANGELISMO
+  ADORACAO
+}
+
+model Mission {
+  id          String  @id @default(cuid())
+  churchId    String
+  church      Church  @relation(fields: [churchId], references: [id])
+  title       String
+  description String?
+  icon        String  @default("target")
+  xpReward    Int     @default(20)
+  frequency   MissionFrequency @default(DIARIA)
+  area        GrowthAreaKey    @default(COMUNHAO)
+  active      Boolean @default(true)
+  weeklyChallengeId String?
+  weeklyChallenge   WeeklyChallenge? @relation(fields: [weeklyChallengeId], references: [id])
+  createdAt   DateTime @default(now())
+
+  completions MissionCompletion[]
+}
+
+model MissionCompletion {
+  id        String   @id @default(cuid())
+  missionId String
+  mission   Mission  @relation(fields: [missionId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  date      DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  @@unique([missionId, userId, date])
+}
+
+model WeeklyChallenge {
+  id        String   @id @default(cuid())
+  churchId  String
+  church    Church   @relation(fields: [churchId], references: [id])
+  title     String
+  theme     String?
+  startsAt  DateTime
+  endsAt    DateTime
+  createdAt DateTime @default(now())
+
+  missions Mission[]
+}
+
+// ---------------- Gamificação ----------------
+
+model XpTransaction {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  amount    Int
+  reason    String
+  area      GrowthAreaKey?
+  refType   String?  // 'devotional' | 'event' | 'mission' | 'prayer' | ...
+  refId     String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Badge {
+  id          String @id @default(cuid())
+  churchId    String?
+  church      Church? @relation(fields: [churchId], references: [id])
+  code        String @unique
+  name        String
+  description String
+  icon        String @default("award")
+  createdAt   DateTime @default(now())
+
+  userBadges UserBadge[]
+}
+
+model UserBadge {
+  id       String @id @default(cuid())
+  badgeId  String
+  badge    Badge  @relation(fields: [badgeId], references: [id])
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  earnedAt DateTime @default(now())
+
+  @@unique([badgeId, userId])
+}
+
+// árvore de crescimento espiritual — XP acumulado por área
+model GrowthArea {
+  id     String        @id @default(cuid())
+  userId String
+  user   User          @relation(fields: [userId], references: [id])
+  area   GrowthAreaKey
+  xp     Int           @default(0)
+
+  @@unique([userId, area])
+}
+
+model Season {
+  id        String   @id @default(cuid())
+  churchId  String
+  church    Church   @relation(fields: [churchId], references: [id])
+  name      String
+  verse     String?
+  theme     String?
+  bannerUrl String?
+  startsAt  DateTime
+  endsAt    DateTime
+}
+
+// ---------------- Mural (feed) ----------------
+
+enum PostType {
+  FOTO
+  VIDEO
+  TESTEMUNHO
+  VERSICULO
+  PEDIDO
+  EVENTO
+  AVISO
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  churchId  String
+  church    Church   @relation(fields: [churchId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  type      PostType @default(TESTEMUNHO)
+  body      String?
+  mediaUrl  String?
+  createdAt DateTime @default(now())
+
+  comments  Comment[]
+  reactions Reaction[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model Reaction {
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  emoji  String @default("🙌")
+
+  @@unique([postId, userId])
+}
+
+// ---------------- Notificações ----------------
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  body      String?
+  kind      String   @default("sistema") // aviso | evento | devocional | badge | missao | parabens
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read])
+}
+
+// ---------------- Escalas ----------------
+
+model Schedule {
+  id       String @id @default(cuid())
+  churchId String
+  church   Church @relation(fields: [churchId], references: [id])
+  ministry String // louvor | recepcao | midia | intercessao | infantil | limpeza | som
+  date     DateTime
+  notes    String?
+
+  slots ScheduleSlot[]
+}
+
+model ScheduleSlot {
+  id         String   @id @default(cuid())
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  roleName   String?
+
+  @@unique([scheduleId, userId])
+}
+
+// ---------------- Biblioteca / Mídia ----------------
+
+enum LibraryKind {
+  PDF
+  EBOOK
+  PREGACAO
+  VIDEO
+  PODCAST
+  PLAYLIST
+}
+
+model LibraryItem {
+  id        String      @id @default(cuid())
+  churchId  String
+  church    Church      @relation(fields: [churchId], references: [id])
+  kind      LibraryKind
+  title     String
+  author    String?
+  url       String
+  coverUrl  String?
+  createdAt DateTime    @default(now())
+}
+
+// ---------------- Diário (com apoio de IA) ----------------
+
+model JournalEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  body      String
+  mood      String?
+  aiReply   String?  // resposta de encorajamento gerada (recurso de apoio)
+  createdAt DateTime @default(now())
+}

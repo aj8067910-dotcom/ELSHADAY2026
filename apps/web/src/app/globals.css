@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-ink-950 text-zinc-100 antialiased;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(212, 175, 55, 0.08), transparent),
+    radial-gradient(ellipse 60% 40% at 90% 110%, rgba(139, 92, 246, 0.05), transparent);
+  background-attachment: fixed;
+  min-height: 100dvh;
+}
+
+@layer components {
+  /* cartão glassmorphism padrão da plataforma */
+  .glass {
+    @apply rounded-3xl border border-white/[0.06] bg-white/[0.04] shadow-card backdrop-blur-xl;
+  }
+  .glass-hover {
+    @apply transition-all duration-300 hover:border-gold-500/30 hover:bg-white/[0.06] hover:shadow-glow;
+  }
+  .gold-text {
+    @apply bg-gold-gradient bg-clip-text text-transparent;
+  }
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-gold-gradient px-5 py-3 font-semibold text-ink-950 shadow-glow transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-3 font-medium text-zinc-200 transition-colors hover:border-gold-500/30 hover:text-gold-300;
+  }
+  .input {
+    @apply w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-zinc-100 placeholder-zinc-500 outline-none transition-colors focus:border-gold-500/50 focus:ring-2 focus:ring-gold-500/20;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-ink-500;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
