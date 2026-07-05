@@ -8,6 +8,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
   Min,
 } from 'class-validator';
 
@@ -22,6 +23,16 @@ export class CreateEventDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() lat?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() lng?: number;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) xpReward?: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Recorrência semanal: repete o evento por N semanas seguintes (ex.: 12 = toda semana, no mesmo dia e horário, por 12 semanas). Cada ocorrência tem seu próprio QR de check-in.',
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(52)
+  repeatWeeklyCount?: number;
 }
 
 export class UpdateEventDto extends PartialType(CreateEventDto) {}

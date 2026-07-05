@@ -12,6 +12,9 @@ import { EmptyState, GlassCard, Spinner } from '@/components/ui';
 import { useXpToast } from '@/components/xp-toast';
 import { AdminMembers } from '@/components/admin-members';
 import { AdminDevotional } from '@/components/admin-devotional';
+import { AdminMissions } from '@/components/admin-missions';
+import { AdminAlerts } from '@/components/admin-alerts';
+import { AdminRanking } from '@/components/admin-ranking';
 
 const EVENT_TYPES = [
   ['CULTO', '⛪ Culto'],
@@ -31,6 +34,7 @@ interface EventForm {
   startsAt: string;
   location: string;
   xpReward: number;
+  repeatWeeklyCount: number;
 }
 
 const EMPTY_FORM: EventForm = {
@@ -40,7 +44,17 @@ const EMPTY_FORM: EventForm = {
   startsAt: '',
   location: '',
   xpReward: 50,
+  repeatWeeklyCount: 0,
 };
+
+const REPEAT_OPTIONS = [
+  [0, 'Não repetir'],
+  [3, 'Por 1 mês (4 ocorrências)'],
+  [7, 'Por 2 meses (8 ocorrências)'],
+  [11, 'Por 3 meses (12 ocorrências)'],
+  [25, 'Por 6 meses (26 ocorrências)'],
+  [51, 'Por 1 ano (52 ocorrências)'],
+] as const;
 
 interface Dashboard {
   totalUsers: number;
@@ -56,11 +70,13 @@ function EventEditor({
   onSave,
   saving,
   onCancel,
+  showRepeat,
 }: {
   initial: EventForm;
   onSave: (form: EventForm) => void;
   saving: boolean;
   onCancel?: () => void;
+  showRepeat?: boolean;
 }) {
   const [form, setForm] = useState<EventForm>(initial);
   const set = (patch: Partial<EventForm>) => setForm((f) => ({ ...f, ...patch }));
@@ -120,6 +136,24 @@ function EventEditor({
         />
         <span className="text-sm text-gold-400">XP</span>
       </div>
+      {showRepeat && (
+        <div>
+          <label className="mb-1 block text-xs text-zinc-500">
+            🔁 Recorrência semanal (mesmo dia e horário — ex.: toda terça)
+          </label>
+          <select
+            className="input"
+            value={form.repeatWeeklyCount}
+            onChange={(e) => set({ repeatWeeklyCount: Number(e.target.value) })}
+          >
+            {REPEAT_OPTIONS.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className="flex gap-2">
         <button
           className="btn-gold flex-1"
@@ -169,15 +203,20 @@ export default function AdminPage() {
 
   const create = useMutation({
     mutationFn: (form: EventForm) =>
-      post('/events', {
+      post<{ created: number }>('/events', {
         ...form,
         description: form.description || undefined,
         location: form.location || undefined,
         startsAt: new Date(form.startsAt).toISOString(),
       }),
-    onSuccess: () => {
+    onSuccess: (data) => {
       setCreating(false);
-      show('Evento criado! 🎪');
+      show(
+        data.created > 1
+          ? `${data.created} eventos criados! 🔁`
+          : 'Evento criado! 🎪',
+        data.created > 1 ? 'Recorrência semanal gerada' : undefined,
+      );
       invalidate();
     },
     onError: (e) => show('Ops!', e instanceof Error ? e.message : 'Erro'),
@@ -237,6 +276,7 @@ export default function AdminPage() {
       .slice(0, 16),
     location: e.location ?? '',
     xpReward: e.xpReward,
+    repeatWeeklyCount: 0,
   });
 
   return (
@@ -297,6 +337,7 @@ export default function AdminPage() {
                 saving={create.isPending}
                 onSave={(form) => create.mutate(form)}
                 onCancel={() => setCreating(false)}
+                showRepeat
               />
             </div>
           </motion.div>
@@ -414,7 +455,13 @@ export default function AdminPage() {
         <EmptyState emoji="📅" title="Nenhum evento criado ainda" />
       )}
 
+      <AdminAlerts />
+
       <AdminDevotional />
+
+      <AdminMissions />
+
+      <AdminRanking />
 
       <AdminMembers me={me} />
     </div>

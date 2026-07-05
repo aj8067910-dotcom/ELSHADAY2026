@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Pencil, Search, Sparkles, X } from 'lucide-react';
+import { Pencil, Search, Sparkles, Trash2, X } from 'lucide-react';
 import { api, patch, post } from '@/lib/api';
 import type { Me } from '@/lib/types';
 import { Avatar, GlassCard, Spinner } from '@/components/ui';
@@ -270,6 +270,7 @@ function MemberEditor({
 
 export function AdminMembers({ me }: { me: Me }) {
   const queryClient = useQueryClient();
+  const { show } = useXpToast();
   const [search, setSearch] = useState('');
   const [openPanel, setOpenPanel] = useState<{
     id: string;
@@ -291,6 +292,15 @@ export function AdminMembers({ me }: { me: Me }) {
     queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] });
     queryClient.invalidateQueries({ queryKey: ['ranking'] });
   };
+
+  const remove = useMutation({
+    mutationFn: (id: string) => api(`/admin/users/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      show('Membro excluído', 'Todos os dados pessoais foram removidos');
+      refresh();
+    },
+    onError: (e) => show('Ops!', e instanceof Error ? e.message : 'Erro ao excluir'),
+  });
 
   const filtered = users?.filter((u) =>
     `${u.name} ${u.nickname ?? ''} ${u.email}`
@@ -368,6 +378,22 @@ export function AdminMembers({ me }: { me: Me }) {
                 >
                   <Pencil size={18} />
                 </button>
+                {user.id !== me.id && (
+                  <button
+                    className="rounded-xl border border-white/10 p-2 text-zinc-500 transition-colors hover:border-red-500/30 hover:text-red-400"
+                    title="Excluir membro"
+                    onClick={() => {
+                      if (
+                        confirm(
+                          `Excluir ${user.nickname || user.name}? Todos os dados pessoais (XP, badges, pedidos, posts) serão removidos definitivamente.`,
+                        )
+                      )
+                        remove.mutate(user.id);
+                    }}
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                )}
               </div>
 
               <AnimatePresence>

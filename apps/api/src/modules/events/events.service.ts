@@ -31,23 +31,39 @@ export class EventsService {
     private gamification: GamificationService,
   ) {}
 
-  create(churchId: string, creatorId: string, dto: CreateEventDto) {
-    return this.prisma.event.create({
-      data: {
-        churchId,
-        creatorId,
-        type: dto.type,
-        title: dto.title,
-        description: dto.description,
-        bannerUrl: dto.bannerUrl,
-        startsAt: new Date(dto.startsAt),
-        endsAt: dto.endsAt ? new Date(dto.endsAt) : undefined,
-        location: dto.location,
-        lat: dto.lat,
-        lng: dto.lng,
-        xpReward: dto.xpReward ?? 80,
-      },
-    });
+  /**
+   * Cria o evento e, se solicitado, as ocorrências semanais seguintes
+   * (ex.: culto toda terça por 12 semanas). Cada ocorrência é um evento
+   * independente, com sua própria lista de presença e QR de check-in.
+   */
+  async create(churchId: string, creatorId: string, dto: CreateEventDto) {
+    const first = new Date(dto.startsAt);
+    const firstEnd = dto.endsAt ? new Date(dto.endsAt) : undefined;
+    const repeats = Math.min(dto.repeatWeeklyCount ?? 0, 52);
+
+    const events = await this.prisma.$transaction(
+      Array.from({ length: repeats + 1 }, (_, week) => {
+        const offset = week * 7 * 86_400_000;
+        return this.prisma.event.create({
+          data: {
+            churchId,
+            creatorId,
+            type: dto.type,
+            title: dto.title,
+            description: dto.description,
+            bannerUrl: dto.bannerUrl,
+            startsAt: new Date(first.getTime() + offset),
+            endsAt: firstEnd ? new Date(firstEnd.getTime() + offset) : undefined,
+            location: dto.location,
+            lat: dto.lat,
+            lng: dto.lng,
+            xpReward: dto.xpReward ?? 80,
+          },
+        });
+      }),
+    );
+
+    return { created: events.length, event: events[0] };
   }
 
   async update(churchId: string, id: string, dto: UpdateEventDto) {

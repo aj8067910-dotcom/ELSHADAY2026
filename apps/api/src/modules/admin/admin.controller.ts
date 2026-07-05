@@ -2,6 +2,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   NotFoundException,
@@ -128,6 +129,100 @@ export class AdminController {
     }
   }
 
+  /**
+   * Exclui um membro definitivamente. Dados pessoais são removidos
+   * (LGPD); conteúdo institucional que ele criou (devocionais, eventos,
+   * círculos) é reatribuído a quem executou a exclusão para preservar
+   * o histórico da igreja.
+   */
+  @Delete('users/:id')
+  async deleteUser(@CurrentUser() actor: AuthUser, @Param('id') id: string) {
+    if (id === actor.id) {
+      throw new ForbiddenException('Você não pode excluir a si mesmo.');
+    }
+    const target = await this.prisma.user.findFirst({
+      where: { id, churchId: actor.churchId },
+    });
+    if (!target) throw new NotFoundException('Membro não encontrado.');
+    if (rank(target.role) >= rank(actor.role)) {
+      throw new ForbiddenException(
+        'Você não pode excluir alguém do seu nível ou acima na hierarquia.',
+      );
+    }
+
+    const postIds = (
+      await this.prisma.post.findMany({
+        where: { authorId: id },
+        select: { id: true },
+      })
+    ).map((p) => p.id);
+    const prayerIds = (
+      await this.prisma.prayerRequest.findMany({
+        where: { userId: id },
+        select: { id: true },
+      })
+    ).map((p) => p.id);
+
+    await this.prisma.$transaction([
+      // desfaz vínculos que apontam para o membro
+      this.prisma.user.updateMany({
+        where: { leaderId: id },
+        data: { leaderId: null },
+      }),
+      this.prisma.user.updateMany({
+        where: { duoPartnerId: id },
+        data: { duoPartnerId: null },
+      }),
+      this.prisma.team.updateMany({
+        where: { leaderId: id },
+        data: { leaderId: null },
+      }),
+      this.prisma.team.updateMany({
+        where: { viceId: id },
+        data: { viceId: null },
+      }),
+      // conteúdo institucional é preservado, reatribuído ao executor
+      this.prisma.devotional.updateMany({
+        where: { authorId: id },
+        data: { authorId: actor.id },
+      }),
+      this.prisma.event.updateMany({
+        where: { creatorId: id },
+        data: { creatorId: actor.id },
+      }),
+      this.prisma.prayerCircle.updateMany({
+        where: { leaderId: id },
+        data: { leaderId: actor.id },
+      }),
+      // dados pessoais e de atividade são removidos
+      this.prisma.prayerIntercession.deleteMany({
+        where: { OR: [{ userId: id }, { requestId: { in: prayerIds } }] },
+      }),
+      this.prisma.prayerRequest.deleteMany({ where: { userId: id } }),
+      this.prisma.reaction.deleteMany({
+        where: { OR: [{ userId: id }, { postId: { in: postIds } }] },
+      }),
+      this.prisma.comment.deleteMany({
+        where: { OR: [{ authorId: id }, { postId: { in: postIds } }] },
+      }),
+      this.prisma.post.deleteMany({ where: { authorId: id } }),
+      this.prisma.devotionalCompletion.deleteMany({ where: { userId: id } }),
+      this.prisma.missionCompletion.deleteMany({ where: { userId: id } }),
+      this.prisma.eventAttendance.deleteMany({ where: { userId: id } }),
+      this.prisma.circleAttendance.deleteMany({ where: { userId: id } }),
+      this.prisma.userBadge.deleteMany({ where: { userId: id } }),
+      this.prisma.growthArea.deleteMany({ where: { userId: id } }),
+      this.prisma.xpTransaction.deleteMany({ where: { userId: id } }),
+      this.prisma.notification.deleteMany({ where: { userId: id } }),
+      this.prisma.journalEntry.deleteMany({ where: { userId: id } }),
+      this.prisma.scheduleSlot.deleteMany({ where: { userId: id } }),
+      this.prisma.streak.deleteMany({ where: { userId: id } }),
+      this.prisma.user.delete({ where: { id } }),
+    ]);
+
+    return { ok: true };
+  }
+
   /** Adiciona ou desconta XP de um membro, com motivo registrado. */
   @Post('users/:id/xp')
   async adjustXp(
@@ -206,6 +301,95 @@ export class AdminController {
       xpWeek,
       topStreaks,
     };
+  }
+
+  /**
+   * Alertas de presença: identifica membros faltando muito nos cultos
+   * recorrentes, agrupados por dia da semana (ex.: "culto de domingo",
+   * "culto de quinta"). Considera as últimas 6 semanas e só gera alerta
+   * para séries com pelo menos 3 cultos realizados.
+   */
+  @Get('attendance-alerts')
+  async attendanceAlerts(@CurrentUser() user: AuthUser) {
+    const since = new Date(Date.now() - 42 * 86_400_000); // 6 semanas
+    const now = new Date();
+
+    const [events, members] = await Promise.all([
+      this.prisma.event.findMany({
+        where: {
+          churchId: user.churchId,
+          type: 'CULTO',
+          startsAt: { gte: since, lte: now },
+        },
+        include: {
+          attendances: {
+            where: { status: 'CHECKIN' },
+            select: { userId: true },
+          },
+        },
+      }),
+      this.prisma.user.findMany({
+        where: { churchId: user.churchId, role: { not: 'VISITANTE' } },
+        select: { id: true, name: true, nickname: true, avatarUrl: true, phone: true },
+      }),
+    ]);
+
+    const WEEKDAYS = [
+      'domingo',
+      'segunda',
+      'terça',
+      'quarta',
+      'quinta',
+      'sexta',
+      'sábado',
+    ];
+
+    // agrupa os cultos realizados por dia da semana (horário de Brasília,
+    // UTC-3 — um culto de domingo às 21h30 não pode virar "segunda")
+    const BRT_OFFSET_MS = 3 * 3_600_000;
+    const byWeekday = new Map<number, typeof events>();
+    for (const event of events) {
+      const day = new Date(event.startsAt.getTime() - BRT_OFFSET_MS).getUTCDay();
+      byWeekday.set(day, [...(byWeekday.get(day) ?? []), event]);
+    }
+
+    const alerts: Array<{
+      user: (typeof members)[number];
+      weekday: string;
+      total: number;
+      attended: number;
+      missed: number;
+      severity: 'alto' | 'medio';
+    }> = [];
+
+    for (const [day, series] of byWeekday) {
+      if (series.length < 3) continue; // não é um culto recorrente
+
+      for (const member of members) {
+        const attended = series.filter((event) =>
+          event.attendances.some((a) => a.userId === member.id),
+        ).length;
+        const missed = series.length - attended;
+        const rate = attended / series.length;
+
+        if (rate <= 0.5) {
+          alerts.push({
+            user: member,
+            weekday: WEEKDAYS[day],
+            total: series.length,
+            attended,
+            missed,
+            severity: rate <= 0.25 ? 'alto' : 'medio',
+          });
+        }
+      }
+    }
+
+    // mais críticos primeiro
+    alerts.sort(
+      (a, b) => a.attended / a.total - b.attended / b.total || b.missed - a.missed,
+    );
+    return alerts.slice(0, 30);
   }
 
   /** Relatório de participação em CSV (frequência e engajamento). */

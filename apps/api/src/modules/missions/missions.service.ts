@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GamificationService } from '../gamification/gamification.service';
+import { CreateMissionDto, UpdateMissionDto } from './dto/missions.dto';
 
 function todayDate(): Date {
   const d = new Date();
@@ -18,6 +19,87 @@ export class MissionsService {
     private prisma: PrismaService,
     private gamification: GamificationService,
   ) {}
+
+  /** Lista completa para gestão pela liderança (inclui inativas). */
+  manage(churchId: string) {
+    return this.prisma.mission.findMany({
+      where: { churchId },
+      orderBy: [{ frequency: 'asc' }, { createdAt: 'asc' }],
+      include: { weeklyChallenge: { select: { id: true, title: true } } },
+    });
+  }
+
+  /**
+   * Cria uma missão. Missões semanais são anexadas ao desafio da semana
+   * vigente — se não houver um, ele é criado automaticamente.
+   */
+  async createMission(churchId: string, dto: CreateMissionDto) {
+    let weeklyChallengeId: string | undefined;
+
+    if (dto.frequency === 'SEMANAL') {
+      const now = new Date();
+      let challenge = await this.prisma.weeklyChallenge.findFirst({
+        where: { churchId, startsAt: { lte: now }, endsAt: { gte: now } },
+      });
+      if (!challenge) {
+        challenge = await this.prisma.weeklyChallenge.create({
+          data: {
+            churchId,
+            title: 'Desafio da Semana',
+            startsAt: now,
+            endsAt: new Date(now.getTime() + 7 * 86_400_000),
+          },
+        });
+      }
+      weeklyChallengeId = challenge.id;
+    }
+
+    return this.prisma.mission.create({
+      data: {
+        churchId,
+        title: dto.title,
+        description: dto.description,
+        icon: dto.icon ?? 'target',
+        xpReward: dto.xpReward,
+        frequency: dto.frequency,
+        area: dto.area,
+        weeklyChallengeId,
+      },
+    });
+  }
+
+  async updateMission(churchId: string, id: string, dto: UpdateMissionDto) {
+    const mission = await this.prisma.mission.findFirst({
+      where: { id, churchId },
+    });
+    if (!mission) throw new NotFoundException('Missão não encontrada.');
+
+    return this.prisma.mission.update({
+      where: { id },
+      data: {
+        ...(dto.title !== undefined ? { title: dto.title } : {}),
+        ...(dto.description !== undefined ? { description: dto.description } : {}),
+        ...(dto.icon !== undefined ? { icon: dto.icon } : {}),
+        ...(dto.xpReward !== undefined ? { xpReward: dto.xpReward } : {}),
+        ...(dto.frequency !== undefined ? { frequency: dto.frequency } : {}),
+        ...(dto.area !== undefined ? { area: dto.area } : {}),
+        ...(dto.active !== undefined ? { active: dto.active } : {}),
+      },
+    });
+  }
+
+  async deleteMission(churchId: string, id: string) {
+    const mission = await this.prisma.mission.findFirst({
+      where: { id, churchId },
+    });
+    if (!mission) throw new NotFoundException('Missão não encontrada.');
+
+    await this.prisma.$transaction([
+      this.prisma.missionCompletion.deleteMany({ where: { missionId: id } }),
+      this.prisma.mission.delete({ where: { id } }),
+    ]);
+    return { ok: true };
+  }
 
   /** Missões do dia com estado de conclusão do usuário. */
   async daily(churchId: string, userId: string) {
