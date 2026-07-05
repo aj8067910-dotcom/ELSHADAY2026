@@ -49,7 +49,7 @@ async function main() {
       name: 'Grupo Elshaday',
       slug: 'elshaday',
       city: 'Brasil',
-      primaryColor: '#D4AF37',
+      primaryColor: '#9F7AEA',
     },
   });
 
@@ -82,7 +82,7 @@ async function main() {
       id: 'seed-team-leao',
       churchId: church.id,
       name: 'Leões de Judá',
-      color: '#D4AF37',
+      color: '#9F7AEA',
     },
   });
   await prisma.team.upsert({

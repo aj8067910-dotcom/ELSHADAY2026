@@ -54,7 +54,7 @@ export default function RegisterPage() {
       transition={{ duration: 0.6, ease: 'easeOut' }}
     >
       <div className="mb-8 text-center">
-        <h1 className="font-display text-2xl font-bold gold-text">
+        <h1 className="font-display text-2xl font-bold brand-text">
           Bem-vindo à família 🤍
         </h1>
         <p className="mt-2 text-sm text-zinc-400">
@@ -103,12 +103,12 @@ export default function RegisterPage() {
           {...register('phone')}
         />
         {error && <p className="text-sm text-red-400">{error}</p>}
-        <button className="btn-gold w-full" disabled={isSubmitting}>
+        <button className="btn-brand w-full" disabled={isSubmitting}>
           {isSubmitting ? 'Criando conta...' : 'Começar a jornada ✨'}
         </button>
         <p className="text-center text-sm text-zinc-500">
           Já tem conta?{' '}
-          <Link href="/login" className="text-gold-300 hover:underline">
+          <Link href="/login" className="text-brand-300 hover:underline">
             Entrar
           </Link>
         </p>

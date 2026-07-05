@@ -64,7 +64,7 @@ export default function EventosPage() {
             Eventos
           </p>
           <h1 className="font-display text-2xl font-bold">
-            Melhor <span className="gold-text">juntos</span> 🎪
+            Melhor <span className="brand-text">juntos</span> 🎪
           </h1>
         </div>
         <button
@@ -95,7 +95,7 @@ export default function EventosPage() {
                 onChange={(e) => setCode(e.target.value)}
               />
               <button
-                className="btn-gold w-full"
+                className="btn-brand w-full"
                 disabled={!code || checkin.isPending}
                 onClick={() => checkin.mutate()}
               >
@@ -114,8 +114,8 @@ export default function EventosPage() {
             return (
               <GlassCard key={event.id} delay={i * 0.05} className="glass-hover">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 flex-col items-center justify-center rounded-2xl bg-gold-500/10">
-                    <span className="font-display text-lg font-bold text-gold-300">
+                  <div className="flex h-14 w-14 flex-col items-center justify-center rounded-2xl bg-brand-500/10">
+                    <span className="font-display text-lg font-bold text-brand-300">
                       {date.getDate()}
                     </span>
                     <span className="text-[10px] uppercase text-zinc-500">
@@ -160,7 +160,7 @@ export default function EventosPage() {
                       ✓ Você esteve lá
                     </span>
                   ) : event.myStatus === 'CONFIRMADO' ? (
-                    <span className="block rounded-2xl border border-gold-500/20 bg-gold-500/[0.06] py-2.5 text-center text-sm font-medium text-gold-300">
+                    <span className="block rounded-2xl border border-brand-500/20 bg-brand-500/[0.06] py-2.5 text-center text-sm font-medium text-brand-300">
                       🎟️ Presença confirmada
                     </span>
                   ) : (

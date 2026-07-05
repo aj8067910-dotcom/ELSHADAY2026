@@ -73,7 +73,7 @@ export default function HomePage() {
             {greeting}, <span className="text-zinc-200">{firstName}</span> 👋
           </p>
           <h1 className="font-display text-2xl font-bold">
-            Que bom te ver <span className="gold-text">hoje</span>.
+            Que bom te ver <span className="brand-text">hoje</span>.
           </h1>
         </div>
         <Link href="/perfil">
@@ -87,7 +87,7 @@ export default function HomePage() {
           <StreakFlame days={summary.streak.current} />
           <div className="flex-1">
             <div className="mb-1 flex items-baseline justify-between">
-              <span className="font-display text-sm font-semibold text-gold-300">
+              <span className="font-display text-sm font-semibold text-brand-300">
                 Nível {summary.level.level} · {summary.level.title}
               </span>
               <span className="text-xs text-zinc-500">
@@ -105,13 +105,13 @@ export default function HomePage() {
 
       {/* aniversariantes */}
       {birthdays && birthdays.length > 0 && (
-        <GlassCard delay={0.08} className="border-gold-500/20">
+        <GlassCard delay={0.08} className="border-brand-500/20">
           {birthdays.map((b) => (
             <div key={b.id} className="flex items-center gap-3">
               <span className="text-2xl">🎂</span>
               <p className="flex-1 text-sm">
                 Hoje é aniversário de{' '}
-                <span className="font-semibold text-gold-300">{b.name}</span>!
+                <span className="font-semibold text-brand-300">{b.name}</span>!
               </p>
               <Link href="/mural" className="btn-ghost px-3 py-1.5 text-xs">
                 Enviar mensagem
@@ -123,12 +123,12 @@ export default function HomePage() {
 
       {/* lembrete da dupla espiritual */}
       {me.duoPartner && (
-        <GlassCard delay={0.09} className="border-gold-500/10">
+        <GlassCard delay={0.09} className="border-brand-500/10">
           <div className="flex items-center gap-3">
             <span className="text-2xl">🤝</span>
             <p className="flex-1 text-sm">
               Ore hoje por{' '}
-              <span className="font-semibold text-gold-300">
+              <span className="font-semibold text-brand-300">
                 {me.duoPartner.nickname || me.duoPartner.name}
               </span>
               , sua dupla espiritual. 🤍
@@ -144,7 +144,7 @@ export default function HomePage() {
       <Link href="/devocional" className="block">
         <GlassCard className="glass-hover" delay={0.1}>
           <div className="flex items-start gap-4">
-            <div className="rounded-2xl bg-gold-500/10 p-3 text-gold-400">
+            <div className="rounded-2xl bg-brand-500/10 p-3 text-brand-400">
               <BookOpen size={22} />
             </div>
             <div className="flex-1">
@@ -166,7 +166,7 @@ export default function HomePage() {
                       ✓ Concluído hoje
                     </span>
                   ) : (
-                    <span className="mt-2 inline-block rounded-full bg-gold-500/10 px-3 py-1 text-xs font-medium text-gold-300">
+                    <span className="mt-2 inline-block rounded-full bg-brand-500/10 px-3 py-1 text-xs font-medium text-brand-300">
                       +20 XP te esperando
                     </span>
                   )}
@@ -200,7 +200,7 @@ export default function HomePage() {
                   key={m.id}
                   className={`flex h-8 w-8 items-center justify-center rounded-full border text-xs ${
                     m.completed
-                      ? 'border-gold-500/40 bg-gold-500/20'
+                      ? 'border-brand-500/40 bg-brand-500/20'
                       : 'border-white/10 bg-ink-700'
                   }`}
                 >
@@ -252,7 +252,7 @@ export default function HomePage() {
       {/* árvore de crescimento */}
       <GlassCard delay={0.25}>
         <div className="mb-3 flex items-center gap-2">
-          <Sparkles size={16} className="text-gold-400" />
+          <Sparkles size={16} className="text-brand-400" />
           <h2 className="font-display text-sm font-semibold uppercase tracking-widest text-zinc-400">
             Sua árvore de crescimento
           </h2>
@@ -267,7 +267,7 @@ export default function HomePage() {
                 className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3"
               >
                 <p className="text-sm">{label}</p>
-                <p className="mt-1 font-display text-lg font-bold gold-text">
+                <p className="mt-1 font-display text-lg font-bold brand-text">
                   {xp} <span className="text-xs font-normal">XP</span>
                 </p>
               </div>
@@ -286,7 +286,7 @@ export default function HomePage() {
             {summary.badges.slice(0, 6).map((b) => (
               <span
                 key={b.code}
-                className="rounded-full border border-gold-500/20 bg-gold-500/[0.07] px-3 py-1.5 text-xs font-medium text-gold-300"
+                className="rounded-full border border-brand-500/20 bg-brand-500/[0.07] px-3 py-1.5 text-xs font-medium text-brand-300"
               >
                 🏅 {b.name}
               </span>

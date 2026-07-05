@@ -50,7 +50,7 @@ export default function LoginPage() {
         >
           ✨
         </motion.div>
-        <h1 className="font-display text-3xl font-bold gold-text">
+        <h1 className="font-display text-3xl font-bold brand-text">
           GRUPO ELSHADAY
         </h1>
         <p className="mt-2 text-sm text-zinc-400">
@@ -74,11 +74,11 @@ export default function LoginPage() {
           {...register('password', { required: true })}
         />
         {error && <p className="text-sm text-red-400">{error}</p>}
-        <button className="btn-gold w-full" disabled={isSubmitting}>
+        <button className="btn-brand w-full" disabled={isSubmitting}>
           {isSubmitting ? 'Entrando...' : 'Entrar'}
         </button>
         <div className="flex items-center justify-between text-sm">
-          <Link href="/register" className="text-gold-300 hover:underline">
+          <Link href="/register" className="text-brand-300 hover:underline">
             Criar conta
           </Link>
           <button type="button" className="text-zinc-500 hover:text-zinc-300">

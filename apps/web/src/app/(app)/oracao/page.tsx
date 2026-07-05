@@ -53,10 +53,10 @@ export default function OracaoPage() {
             Oração
           </p>
           <h1 className="font-display text-2xl font-bold">
-            Orai uns <span className="gold-text">pelos outros</span> 🙏
+            Orai uns <span className="brand-text">pelos outros</span> 🙏
           </h1>
         </div>
-        <button className="btn-gold px-4 py-2" onClick={() => setOpen(!open)}>
+        <button className="btn-brand px-4 py-2" onClick={() => setOpen(!open)}>
           <Plus size={18} />
           Pedido
         </button>
@@ -96,7 +96,7 @@ export default function OracaoPage() {
                     onClick={() => setVisibility(value)}
                     className={`rounded-full px-3 py-1.5 transition-colors ${
                       visibility === value
-                        ? 'bg-gold-gradient font-semibold text-ink-950'
+                        ? 'bg-brand-gradient font-semibold text-ink-950'
                         : 'border border-white/10 text-zinc-400'
                     }`}
                   >
@@ -105,7 +105,7 @@ export default function OracaoPage() {
                 ))}
               </div>
               <button
-                className="btn-gold w-full"
+                className="btn-brand w-full"
                 disabled={!title || !body || create.isPending}
                 onClick={() => create.mutate()}
               >
@@ -157,7 +157,7 @@ export default function OracaoPage() {
                 <button
                   onClick={() => intercede.mutate(r.id)}
                   disabled={intercede.isPending}
-                  className="flex items-center gap-2 rounded-full border border-gold-500/30 px-4 py-1.5 text-sm font-medium text-gold-300 transition-all hover:bg-gold-500/10 active:scale-95"
+                  className="flex items-center gap-2 rounded-full border border-brand-500/30 px-4 py-1.5 text-sm font-medium text-brand-300 transition-all hover:bg-brand-500/10 active:scale-95"
                 >
                   <HeartHandshake size={16} />
                   Orar agora

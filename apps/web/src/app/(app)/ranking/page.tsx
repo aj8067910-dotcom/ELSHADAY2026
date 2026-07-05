@@ -26,7 +26,7 @@ export default function RankingPage() {
           Jornada coletiva
         </p>
         <h1 className="font-display text-2xl font-bold">
-          Crescendo <span className="gold-text">juntos</span> 🌱
+          Crescendo <span className="brand-text">juntos</span> 🌱
         </h1>
         <p className="mt-1 text-sm text-zinc-500">
           Isto não é competição — é uma celebração da constância de cada um.
@@ -54,7 +54,7 @@ export default function RankingPage() {
               key={entry.user?.id ?? i}
               delay={i * 0.04}
               className={`flex items-center gap-4 p-4 ${
-                i < 3 ? 'border-gold-500/20' : ''
+                i < 3 ? 'border-brand-500/20' : ''
               }`}
             >
               <span className="w-8 text-center font-display text-lg font-bold text-zinc-500">
@@ -75,7 +75,7 @@ export default function RankingPage() {
                   </p>
                 )}
               </div>
-              <span className="font-display font-bold gold-text">
+              <span className="font-display font-bold brand-text">
                 {entry.xp.toLocaleString('pt-BR')} XP
               </span>
             </GlassCard>

@@ -14,11 +14,12 @@ const config: Config = {
           600: '#26262e',
           500: '#34343e',
         },
-        gold: {
-          300: '#F2D98D',
-          400: '#E5C158',
-          500: '#D4AF37',
-          600: '#B3922B',
+        // lilás — cor predominante do grupo
+        brand: {
+          300: '#D6BCFA',
+          400: '#B794F4',
+          500: '#9F7AEA',
+          600: '#805AD5',
         },
       },
       fontFamily: {
@@ -30,14 +31,14 @@ const config: Config = {
         '3xl': '1.75rem',
       },
       boxShadow: {
-        glow: '0 0 40px rgba(212, 175, 55, 0.18)',
+        glow: '0 0 40px rgba(159, 122, 234, 0.20)',
         card: '0 8px 32px rgba(0, 0, 0, 0.45)',
       },
       backgroundImage: {
-        'gold-gradient':
-          'linear-gradient(135deg, #F2D98D 0%, #D4AF37 45%, #B3922B 100%)',
+        'brand-gradient':
+          'linear-gradient(135deg, #D6BCFA 0%, #9F7AEA 45%, #805AD5 100%)',
         'radial-fade':
-          'radial-gradient(ellipse at top, rgba(212,175,55,0.10), transparent 55%)',
+          'radial-gradient(ellipse at top, rgba(159,122,234,0.10), transparent 55%)',
       },
       keyframes: {
         'fade-up': {

@@ -55,7 +55,7 @@ export function XpToastProvider({ children }: { children: React.ReactNode }) {
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               className="glass flex items-center gap-3 px-6 py-3"
             >
-              <span className="font-display text-lg font-bold gold-text">
+              <span className="font-display text-lg font-bold brand-text">
                 {toast.text}
               </span>
               {toast.sub && (

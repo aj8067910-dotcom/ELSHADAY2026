@@ -79,10 +79,10 @@ export default function MuralPage() {
             Mural
           </p>
           <h1 className="font-display text-2xl font-bold">
-            A vida da <span className="gold-text">família</span> 📸
+            A vida da <span className="brand-text">família</span> 📸
           </h1>
         </div>
-        <button className="btn-gold px-4 py-2" onClick={() => setOpen(!open)}>
+        <button className="btn-brand px-4 py-2" onClick={() => setOpen(!open)}>
           <Plus size={18} />
           Publicar
         </button>
@@ -104,7 +104,7 @@ export default function MuralPage() {
                     onClick={() => setType(value)}
                     className={`rounded-full px-3 py-1.5 transition-colors ${
                       type === value
-                        ? 'bg-gold-gradient font-semibold text-ink-950'
+                        ? 'bg-brand-gradient font-semibold text-ink-950'
                         : 'border border-white/10 text-zinc-400'
                     }`}
                   >
@@ -119,7 +119,7 @@ export default function MuralPage() {
                 onChange={(e) => setBody(e.target.value)}
               />
               <button
-                className="btn-gold w-full"
+                className="btn-brand w-full"
                 disabled={!body || create.isPending}
                 onClick={() => create.mutate()}
               >
@@ -164,7 +164,7 @@ export default function MuralPage() {
               <div className="mt-3 flex items-center gap-4 border-t border-white/[0.05] pt-3 text-sm text-zinc-500">
                 <button
                   onClick={() => react.mutate(p.id)}
-                  className="flex items-center gap-1.5 transition-transform hover:text-gold-300 active:scale-90"
+                  className="flex items-center gap-1.5 transition-transform hover:text-brand-300 active:scale-90"
                 >
                   🙌 {p._count.reactions}
                 </button>
@@ -201,7 +201,7 @@ export default function MuralPage() {
                     }
                   />
                   <button
-                    className="btn-gold px-4 py-2"
+                    className="btn-brand px-4 py-2"
                     disabled={!comment || sendComment.isPending}
                     onClick={() => sendComment.mutate(p.id)}
                   >

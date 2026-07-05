@@ -38,7 +38,7 @@ export function AdminRanking() {
         {ranking?.slice(0, 10).map((entry, i) => (
           <GlassCard
             key={entry.user?.id ?? i}
-            className={`flex items-center gap-3 p-3 ${i < 3 ? 'border-gold-500/20' : ''}`}
+            className={`flex items-center gap-3 p-3 ${i < 3 ? 'border-brand-500/20' : ''}`}
           >
             <span className="w-7 text-center font-display font-bold text-zinc-500">
               {PODIUM[i] ?? entry.position}
@@ -51,7 +51,7 @@ export function AdminRanking() {
             <p className="flex-1 truncate text-sm font-medium">
               {entry.user?.nickname || entry.user?.name}
             </p>
-            <span className="font-display text-sm font-bold gold-text">
+            <span className="font-display text-sm font-bold brand-text">
               {entry.xp.toLocaleString('pt-BR')} XP
             </span>
           </GlassCard>

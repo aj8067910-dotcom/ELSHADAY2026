@@ -45,7 +45,7 @@ function MissionRow({
         >
           {mission.title}
         </p>
-        <p className="text-xs text-gold-400">+{mission.xpReward} XP</p>
+        <p className="text-xs text-brand-400">+{mission.xpReward} XP</p>
       </div>
       {mission.completed ? (
         <span className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
@@ -55,7 +55,7 @@ function MissionRow({
         <button
           onClick={() => onComplete(mission.id)}
           disabled={pending}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-gold-500/30 text-gold-400 transition-all hover:bg-gold-500/10 active:scale-90 disabled:opacity-40"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-500/30 text-brand-400 transition-all hover:bg-brand-500/10 active:scale-90 disabled:opacity-40"
           aria-label={`Concluir: ${mission.title}`}
         >
           <Check size={18} />
@@ -104,7 +104,7 @@ export default function MissoesPage() {
           Missões
         </p>
         <h1 className="font-display text-2xl font-bold">
-          Pequenos passos, <span className="gold-text">grande jornada</span> 🎯
+          Pequenos passos, <span className="brand-text">grande jornada</span> 🎯
         </h1>
       </header>
 
@@ -113,7 +113,7 @@ export default function MissoesPage() {
           <GlassCard>
             <div className="flex items-center justify-between">
               <p className="text-sm text-zinc-400">Progresso de hoje</p>
-              <p className="font-display font-bold gold-text">
+              <p className="font-display font-bold brand-text">
                 {done}/{missions.length}
               </p>
             </div>
@@ -144,8 +144,8 @@ export default function MissoesPage() {
 
       {challenge && (
         <section className="pt-4">
-          <GlassCard className="border-gold-500/20">
-            <p className="text-xs uppercase tracking-widest text-gold-400">
+          <GlassCard className="border-brand-500/20">
+            <p className="text-xs uppercase tracking-widest text-brand-400">
               Desafio da semana
             </p>
             <h2 className="mt-1 font-display text-lg font-bold">

@@ -65,7 +65,7 @@ export function Nav() {
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col gap-1 border-r border-white/[0.06] bg-ink-900/70 p-4 backdrop-blur-xl lg:flex">
         <Link href="/home" className="mb-6 flex items-center gap-2 px-3 pt-2">
           <span className="text-2xl">✨</span>
-          <span className="font-display text-lg font-bold gold-text">
+          <span className="font-display text-lg font-bold brand-text">
             ELSHADAY
           </span>
         </Link>
@@ -78,14 +78,14 @@ export function Nav() {
               className={clsx(
                 'relative flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium transition-colors',
                 active
-                  ? 'text-gold-300'
+                  ? 'text-brand-300'
                   : 'text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200',
               )}
             >
               {active && (
                 <motion.span
                   layoutId="nav-pill"
-                  className="absolute inset-0 rounded-2xl border border-gold-500/20 bg-gold-500/10"
+                  className="absolute inset-0 rounded-2xl border border-brand-500/20 bg-brand-500/10"
                   transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                 />
               )}
@@ -113,7 +113,7 @@ export function Nav() {
               href={href}
               className={clsx(
                 'flex flex-col items-center gap-0.5 rounded-2xl px-3 py-1.5 text-[10px] font-medium transition-colors',
-                active ? 'text-gold-300' : 'text-zinc-500',
+                active ? 'text-brand-300' : 'text-zinc-500',
               )}
             >
               <Icon size={20} />
@@ -125,7 +125,7 @@ export function Nav() {
           href="/perfil"
           className={clsx(
             'flex flex-col items-center gap-0.5 rounded-2xl px-3 py-1.5 text-[10px] font-medium transition-colors',
-            pathname.startsWith('/perfil') ? 'text-gold-300' : 'text-zinc-500',
+            pathname.startsWith('/perfil') ? 'text-brand-300' : 'text-zinc-500',
           )}
         >
           <User size={20} />

@@ -69,15 +69,15 @@ export function AdminDevotional() {
         <h2 className="font-display text-sm font-semibold uppercase tracking-widest text-zinc-400">
           Devocional
         </h2>
-        <button className="btn-gold px-4 py-2" onClick={() => setOpen(!open)}>
+        <button className="btn-brand px-4 py-2" onClick={() => setOpen(!open)}>
           <Plus size={18} />
           Publicar
         </button>
       </div>
 
-      <GlassCard className="border-gold-500/10 p-4">
+      <GlassCard className="border-brand-500/10 p-4">
         <p className="text-sm text-zinc-400">
-          <BookOpen size={14} className="mr-1.5 inline text-gold-400" />
+          <BookOpen size={14} className="mr-1.5 inline text-brand-400" />
           O devocional de cada dia é publicado <b>automaticamente</b> pelo
           banco de 365 dias (jornada bíblica anual). Se quiser um conteúdo
           seu, publique <b>até o dia anterior</b> — o que você publicar tem
@@ -145,7 +145,7 @@ export function AdminDevotional() {
               />
               <div className="flex gap-2">
                 <button
-                  className="btn-gold flex-1"
+                  className="btn-brand flex-1"
                   disabled={!valid || publish.isPending}
                   onClick={() => publish.mutate()}
                 >
@@ -171,7 +171,7 @@ export function AdminDevotional() {
                     <p className="font-medium">{d.theme}</p>
                     <p className="text-xs text-zinc-500">{d.verseRef}</p>
                   </div>
-                  <span className="rounded-full bg-gold-500/10 px-3 py-1 text-xs font-medium text-gold-300">
+                  <span className="rounded-full bg-brand-500/10 px-3 py-1 text-xs font-medium text-brand-300">
                     {new Date(d.date).toLocaleDateString('pt-BR', {
                       day: '2-digit',
                       month: 'short',

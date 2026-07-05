@@ -93,7 +93,7 @@ function XpAdjuster({
           onChange={(e) => setAmount(Math.abs(Number(e.target.value)))}
           aria-label="Quantidade de XP"
         />
-        <span className="text-sm text-gold-400">XP</span>
+        <span className="text-sm text-brand-400">XP</span>
       </div>
       <input
         className="input"
@@ -103,7 +103,7 @@ function XpAdjuster({
       />
       <div className="flex gap-2">
         <button
-          className="btn-gold flex-1 py-2"
+          className="btn-brand flex-1 py-2"
           disabled={!valid || adjust.isPending}
           onClick={() => adjust.mutate(amount)}
         >
@@ -254,7 +254,7 @@ function MemberEditor({
       />
       <div className="flex gap-2">
         <button
-          className="btn-gold flex-1"
+          className="btn-brand flex-1"
           disabled={!form.name || !form.email || save.isPending}
           onClick={() => save.mutate()}
         >
@@ -345,7 +345,7 @@ export function AdminMembers({ me }: { me: Me }) {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-display text-sm font-bold gold-text">
+                  <p className="font-display text-sm font-bold brand-text">
                     {user.xpTotal.toLocaleString('pt-BR')} XP
                   </p>
                   <p className="text-[10px] text-zinc-600">
@@ -353,7 +353,7 @@ export function AdminMembers({ me }: { me: Me }) {
                   </p>
                 </div>
                 <button
-                  className="rounded-xl border border-gold-500/30 p-2 text-gold-300 transition-colors hover:bg-gold-500/10"
+                  className="rounded-xl border border-brand-500/30 p-2 text-brand-300 transition-colors hover:bg-brand-500/10"
                   title="Ajustar XP"
                   onClick={() =>
                     setOpenPanel(

@@ -93,7 +93,7 @@ function DuoCard({ me }: { me: Me }) {
           </select>
           <div className="flex gap-2">
             <button
-              className="btn-gold flex-1"
+              className="btn-brand flex-1"
               disabled={!partnerId || save.isPending}
               onClick={() => save.mutate(partnerId)}
             >
@@ -132,7 +132,7 @@ export default function PerfilPage() {
     <div className="space-y-4">
       {/* header do perfil */}
       <GlassCard className="overflow-hidden p-0">
-        <div className="h-24 bg-gold-gradient opacity-30" />
+        <div className="h-24 bg-brand-gradient opacity-30" />
         <div className="-mt-10 px-5 pb-5">
           <Avatar
             name={me.name}
@@ -143,7 +143,7 @@ export default function PerfilPage() {
           <h1 className="mt-3 font-display text-xl font-bold">{me.name}</h1>
           {me.nickname && <p className="text-sm text-zinc-400">@{me.nickname}</p>}
           <div className="mt-2 flex flex-wrap gap-2 text-xs">
-            <span className="rounded-full border border-gold-500/20 bg-gold-500/[0.07] px-3 py-1 font-medium text-gold-300">
+            <span className="rounded-full border border-brand-500/20 bg-brand-500/[0.07] px-3 py-1 font-medium text-brand-300">
               Nível {me.level.level} · {me.level.title}
             </span>
             {me.team && (
@@ -193,7 +193,7 @@ export default function PerfilPage() {
       <GlassCard delay={0.05}>
         <div className="mb-2 flex justify-between text-sm">
           <span className="text-zinc-400">Progresso do nível</span>
-          <span className="font-display font-bold gold-text">
+          <span className="font-display font-bold brand-text">
             {me.xpTotal.toLocaleString('pt-BR')} XP
           </span>
         </div>
@@ -248,10 +248,10 @@ export default function PerfilPage() {
             {summary.badges.map((b) => (
               <div
                 key={b.code}
-                className="rounded-2xl border border-gold-500/15 bg-gold-500/[0.05] p-3 text-center"
+                className="rounded-2xl border border-brand-500/15 bg-brand-500/[0.05] p-3 text-center"
               >
                 <span className="text-2xl">🏅</span>
-                <p className="mt-1 text-xs font-medium text-gold-300">{b.name}</p>
+                <p className="mt-1 text-xs font-medium text-brand-300">{b.name}</p>
                 <p className="text-[10px] text-zinc-600">
                   {new Date(b.earnedAt).toLocaleDateString('pt-BR')}
                 </p>

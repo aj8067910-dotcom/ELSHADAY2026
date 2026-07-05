@@ -54,7 +54,7 @@ export function Avatar({
   ) : (
     <div
       className={clsx(
-        'flex items-center justify-center rounded-full bg-gold-gradient font-display font-bold text-ink-950 ring-1 ring-white/10',
+        'flex items-center justify-center rounded-full bg-brand-gradient font-display font-bold text-ink-950 ring-1 ring-white/10',
         className,
       )}
       style={{ width: size, height: size, fontSize: size * 0.36 }}
@@ -81,7 +81,7 @@ export function XpBar({
       )}
       <div className="h-2.5 overflow-hidden rounded-full bg-white/[0.06]">
         <motion.div
-          className="h-full rounded-full bg-gold-gradient shadow-glow"
+          className="h-full rounded-full bg-brand-gradient shadow-glow"
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(100, progress * 100)}%` }}
           transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
@@ -103,7 +103,7 @@ export function StreakFlame({ days }: { days: number }) {
         🔥
       </span>
       <div>
-        <div className="font-display text-2xl font-bold gold-text">{days}</div>
+        <div className="font-display text-2xl font-bold brand-text">{days}</div>
         <div className="text-xs text-zinc-400">
           {days === 1 ? 'dia seguido' : 'dias seguidos'}
         </div>
@@ -127,8 +127,8 @@ export function Chip({
       className={clsx(
         'rounded-full px-4 py-1.5 text-sm font-medium transition-all',
         active
-          ? 'bg-gold-gradient text-ink-950 shadow-glow'
-          : 'border border-white/10 bg-white/[0.03] text-zinc-300 hover:border-gold-500/30',
+          ? 'bg-brand-gradient text-ink-950 shadow-glow'
+          : 'border border-white/10 bg-white/[0.03] text-zinc-300 hover:border-brand-500/30',
       )}
     >
       {children}
@@ -158,7 +158,7 @@ export function Spinner() {
   return (
     <div className="flex justify-center py-16">
       <motion.div
-        className="h-10 w-10 rounded-full border-2 border-gold-500/20 border-t-gold-500"
+        className="h-10 w-10 rounded-full border-2 border-brand-500/20 border-t-brand-500"
         animate={{ rotate: 360 }}
         transition={{ duration: 0.9, repeat: Infinity, ease: 'linear' }}
       />

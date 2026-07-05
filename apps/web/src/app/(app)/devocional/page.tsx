@@ -44,7 +44,7 @@ export default function DevocionalPage() {
           Devocional
         </p>
         <h1 className="font-display text-2xl font-bold">
-          Palavra de <span className="gold-text">hoje</span> 📖
+          Palavra de <span className="brand-text">hoje</span> 📖
         </h1>
       </header>
 
@@ -59,9 +59,9 @@ export default function DevocionalPage() {
             />
           )}
           <h2 className="font-display text-xl font-bold">{devotional.theme}</h2>
-          <blockquote className="my-4 rounded-2xl border-l-2 border-gold-500 bg-gold-500/[0.05] p-4 italic text-zinc-300">
+          <blockquote className="my-4 rounded-2xl border-l-2 border-brand-500 bg-brand-500/[0.05] p-4 italic text-zinc-300">
             “{devotional.verse}”
-            <footer className="mt-2 text-sm font-semibold not-italic text-gold-300">
+            <footer className="mt-2 text-sm font-semibold not-italic text-brand-300">
               {devotional.verseRef}
             </footer>
           </blockquote>
@@ -95,7 +95,7 @@ export default function DevocionalPage() {
                   onChange={(e) => setNote(e.target.value)}
                 />
                 <button
-                  className="btn-gold w-full"
+                  className="btn-brand w-full"
                   onClick={() => complete.mutate()}
                   disabled={complete.isPending}
                 >

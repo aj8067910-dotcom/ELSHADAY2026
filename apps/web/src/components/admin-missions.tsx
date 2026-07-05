@@ -99,12 +99,12 @@ function MissionForm({
             onChange={(e) => set({ xpReward: Number(e.target.value) })}
             aria-label="XP"
           />
-          <span className="text-sm text-gold-400">XP</span>
+          <span className="text-sm text-brand-400">XP</span>
         </div>
       </div>
       <div className="flex gap-2">
         <button
-          className="btn-gold flex-1"
+          className="btn-brand flex-1"
           disabled={!form.title || form.xpReward < 1 || saving}
           onClick={() => onSave(form)}
         >
@@ -232,7 +232,7 @@ export function AdminMissions() {
         <h2 className="font-display text-sm font-semibold uppercase tracking-widest text-zinc-400">
           Missões
         </h2>
-        <button className="btn-gold px-4 py-2" onClick={() => setCreating(!creating)}>
+        <button className="btn-brand px-4 py-2" onClick={() => setCreating(!creating)}>
           <Plus size={18} />
           Nova missão
         </button>

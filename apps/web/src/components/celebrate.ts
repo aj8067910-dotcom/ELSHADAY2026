@@ -4,7 +4,7 @@ import confetti from 'canvas-confetti';
 
 /** Confetes dourados ao concluir missões / subir de nível. */
 export function celebrate(big = false) {
-  const colors = ['#F2D98D', '#D4AF37', '#B3922B', '#ffffff'];
+  const colors = ['#D6BCFA', '#9F7AEA', '#805AD5', '#ffffff'];
   confetti({
     particleCount: big ? 160 : 70,
     spread: big ? 110 : 70,

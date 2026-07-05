@@ -90,7 +90,7 @@ function EventEditor({
             onClick={() => set({ type: value })}
             className={`rounded-full px-3 py-1.5 transition-colors ${
               form.type === value
-                ? 'bg-gold-gradient font-semibold text-ink-950'
+                ? 'bg-brand-gradient font-semibold text-ink-950'
                 : 'border border-white/10 text-zinc-400'
             }`}
           >
@@ -134,7 +134,7 @@ function EventEditor({
           value={form.xpReward}
           onChange={(e) => set({ xpReward: Number(e.target.value) })}
         />
-        <span className="text-sm text-gold-400">XP</span>
+        <span className="text-sm text-brand-400">XP</span>
       </div>
       {showRepeat && (
         <div>
@@ -156,7 +156,7 @@ function EventEditor({
       )}
       <div className="flex gap-2">
         <button
-          className="btn-gold flex-1"
+          className="btn-brand flex-1"
           disabled={!form.title || !form.startsAt || saving}
           onClick={() => onSave(form)}
         >
@@ -286,7 +286,7 @@ export default function AdminPage() {
           Painel da liderança
         </p>
         <h1 className="font-display text-2xl font-bold">
-          Administração <span className="gold-text">🛡️</span>
+          Administração <span className="brand-text">🛡️</span>
         </h1>
       </header>
 
@@ -317,7 +317,7 @@ export default function AdminPage() {
         <h2 className="font-display text-sm font-semibold uppercase tracking-widest text-zinc-400">
           Eventos
         </h2>
-        <button className="btn-gold px-4 py-2" onClick={() => setCreating(!creating)}>
+        <button className="btn-brand px-4 py-2" onClick={() => setCreating(!creating)}>
           <Plus size={18} />
           Novo evento
         </button>
@@ -424,7 +424,7 @@ export default function AdminPage() {
                     </p>
                   </div>
                   <button
-                    className="rounded-xl border border-gold-500/30 p-2 text-gold-300 transition-colors hover:bg-gold-500/10"
+                    className="rounded-xl border border-brand-500/30 p-2 text-brand-300 transition-colors hover:bg-brand-500/10"
                     title="QR Code de check-in"
                     onClick={() => showQr(event.id)}
                   >
