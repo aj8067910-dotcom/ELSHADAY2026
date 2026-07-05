@@ -147,6 +147,20 @@ model Devotional {
   @@unique([churchId, date])
 }
 
+// Banco de devocionais reserva: 365 dias de jornada bíblica.
+// Quando a liderança não publica até o dia anterior, o sistema
+// publica automaticamente a entrada do dia. Compartilhado entre
+// todas as igrejas (tenants).
+model DevotionalBankEntry {
+  id       String @id @default(cuid())
+  dayIndex Int    @unique // 1..365 (dia do ano)
+  theme    String
+  verse    String
+  verseRef String
+  body     String
+  question String
+}
+
 model DevotionalCompletion {
   id           String     @id @default(cuid())
   devotionalId String

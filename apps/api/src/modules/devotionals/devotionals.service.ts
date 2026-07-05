@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -15,22 +16,46 @@ export class DevotionalsService {
     private gamification: GamificationService,
   ) {}
 
-  create(churchId: string, authorId: string, dto: CreateDevotionalDto) {
-    return this.prisma.devotional.create({
-      data: {
-        churchId,
-        authorId,
-        date: new Date(dto.date),
-        theme: dto.theme,
-        verse: dto.verse,
-        verseRef: dto.verseRef,
-        body: dto.body,
-        imageUrl: dto.imageUrl,
-        videoUrl: dto.videoUrl,
-        audioUrl: dto.audioUrl,
-        question: dto.question,
-      },
-    });
+  /**
+   * Publicação manual pela liderança. Regra: precisa ser feita com
+   * antecedência — a data deve ser de amanhã em diante, para o
+   * devocional aparecer no dia seguinte. O conteúdo publicado pelo
+   * líder tem prioridade sobre o banco automático de 365 dias.
+   */
+  async create(churchId: string, authorId: string, dto: CreateDevotionalDto) {
+    const date = new Date(dto.date);
+    date.setUTCHours(0, 0, 0, 0);
+
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    if (date.getTime() <= today.getTime()) {
+      throw new BadRequestException(
+        'Publique com antecedência: escolha uma data a partir de amanhã. O devocional de hoje já está garantido pelo banco automático. 😉',
+      );
+    }
+
+    try {
+      return await this.prisma.devotional.create({
+        data: {
+          churchId,
+          authorId,
+          date,
+          theme: dto.theme,
+          verse: dto.verse,
+          verseRef: dto.verseRef,
+          body: dto.body,
+          imageUrl: dto.imageUrl,
+          videoUrl: dto.videoUrl,
+          audioUrl: dto.audioUrl,
+          question: dto.question,
+        },
+      });
+    } catch (e: any) {
+      if (e?.code === 'P2002')
+        throw new ConflictException('Já existe um devocional para esta data.');
+      throw e;
+    }
   }
 
   list(churchId: string) {
@@ -47,11 +72,11 @@ export class DevotionalsService {
 
   async today(churchId: string, userId: string) {
     const start = new Date();
-    start.setHours(0, 0, 0, 0);
+    start.setUTCHours(0, 0, 0, 0);
     const end = new Date(start);
-    end.setDate(end.getDate() + 1);
+    end.setUTCDate(end.getUTCDate() + 1);
 
-    const devotional = await this.prisma.devotional.findFirst({
+    let devotional = await this.prisma.devotional.findFirst({
       where: { churchId, date: { gte: start, lt: end } },
       include: {
         author: { select: { id: true, name: true, avatarUrl: true } },
@@ -59,10 +84,67 @@ export class DevotionalsService {
         _count: { select: { completions: true } },
       },
     });
+
+    // Ninguém publicou até ontem? O banco de 365 dias assume.
+    if (!devotional) {
+      await this.publishFromBank(churchId, start);
+      devotional = await this.prisma.devotional.findFirst({
+        where: { churchId, date: { gte: start, lt: end } },
+        include: {
+          author: { select: { id: true, name: true, avatarUrl: true } },
+          completions: { where: { userId } },
+          _count: { select: { completions: true } },
+        },
+      });
+    }
     if (!devotional) return null;
 
     const { completions, ...rest } = devotional;
     return { ...rest, completedByMe: completions.length > 0 };
+  }
+
+  /** Publica automaticamente a entrada do dia a partir do banco anual. */
+  private async publishFromBank(churchId: string, date: Date) {
+    const startOfYear = Date.UTC(date.getUTCFullYear(), 0, 1);
+    let dayOfYear =
+      Math.floor((date.getTime() - startOfYear) / 86_400_000) + 1;
+    if (dayOfYear > 365) dayOfYear = 365; // 29/12 em ano bissexto reaproveita o dia 365
+
+    const entry = await this.prisma.devotionalBankEntry.findUnique({
+      where: { dayIndex: dayOfYear },
+    });
+    if (!entry) return; // banco não semeado — segue sem devocional
+
+    // autor "institucional": primeiro líder disponível da igreja
+    const author = await this.prisma.user.findFirst({
+      where: { churchId, role: { in: ['ADMIN', 'PASTOR', 'LIDER'] } },
+      orderBy: { createdAt: 'asc' },
+    });
+    const fallback =
+      author ??
+      (await this.prisma.user.findFirst({
+        where: { churchId },
+        orderBy: { createdAt: 'asc' },
+      }));
+    if (!fallback) return;
+
+    try {
+      await this.prisma.devotional.create({
+        data: {
+          churchId,
+          authorId: fallback.id,
+          date,
+          theme: entry.theme,
+          verse: entry.verse,
+          verseRef: entry.verseRef,
+          body: entry.body,
+          question: entry.question,
+        },
+      });
+    } catch (e: any) {
+      // corrida entre duas requisições simultâneas: outra já publicou
+      if (e?.code !== 'P2002') throw e;
+    }
   }
 
   /** "Hoje fiz meu devocional" — XP + streak em uma ação. */

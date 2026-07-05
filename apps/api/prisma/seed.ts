@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { generateBank } from './devotional-bank';
 
 const prisma = new PrismaClient();
 
@@ -51,6 +52,20 @@ async function main() {
       primaryColor: '#D4AF37',
     },
   });
+
+  // Banco de devocionais — 365 dias de jornada bíblica
+  const bankCount = await prisma.devotionalBankEntry.count();
+  if (bankCount < 365) {
+    const bank = generateBank();
+    for (const entry of bank) {
+      await prisma.devotionalBankEntry.upsert({
+        where: { dayIndex: entry.dayIndex },
+        update: {},
+        create: entry,
+      });
+    }
+    console.log(`   📖 Banco de devocionais: ${bank.length} dias semeados.`);
+  }
 
   for (const [code, name, description, icon] of BADGES) {
     await prisma.badge.upsert({
