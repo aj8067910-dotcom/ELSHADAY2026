@@ -123,7 +123,8 @@ export class MissionsService {
     const now = new Date();
     const challenge = await this.prisma.weeklyChallenge.findFirst({
       where: { churchId, startsAt: { lte: now }, endsAt: { gte: now } },
-      include: { missions: true },
+      // apenas missões ativas aparecem para os membros
+      include: { missions: { where: { active: true } } },
     });
     if (!challenge) return null;
 
@@ -151,7 +152,8 @@ export class MissionsService {
     const mission = await this.prisma.mission.findUnique({
       where: { id: missionId },
     });
-    if (!mission) throw new NotFoundException('Missão não encontrada.');
+    if (!mission || !mission.active)
+      throw new NotFoundException('Missão não encontrada ou desativada.');
 
     try {
       await this.prisma.missionCompletion.create({
