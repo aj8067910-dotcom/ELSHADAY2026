@@ -90,6 +90,59 @@ export class GamificationService {
   }
 
   /**
+   * Ajuste manual de XP pela liderança (positivo ou negativo).
+   * Nunca deixa o total ficar abaixo de zero e registra o motivo
+   * no histórico e em uma notificação para o membro.
+   */
+  async adjustXp(userId: string, amount: number, reason: string) {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+    });
+    const delta = Math.max(amount, -user.xpTotal);
+    if (delta === 0) {
+      return { amount: 0, xpTotal: user.xpTotal, ...levelFromXp(user.xpTotal) };
+    }
+
+    const ops: any[] = [
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { xpTotal: { increment: delta } },
+      }),
+      this.prisma.xpTransaction.create({
+        data: { userId, amount: delta, reason, refType: 'ajuste' },
+      }),
+    ];
+    if (user.teamId) {
+      const team = await this.prisma.team.findUnique({
+        where: { id: user.teamId },
+      });
+      if (team) {
+        ops.push(
+          this.prisma.team.update({
+            where: { id: team.id },
+            data: { xpTotal: Math.max(0, team.xpTotal + delta) },
+          }),
+        );
+      }
+    }
+    const [updated] = await this.prisma.$transaction(ops);
+
+    await this.notify(
+      userId,
+      delta > 0
+        ? `Você recebeu +${delta} XP: ${reason} ✨`
+        : `Ajuste de ${delta} XP: ${reason}`,
+      'sistema',
+    );
+
+    return {
+      amount: delta,
+      xpTotal: updated.xpTotal,
+      level: levelFromXp(updated.xpTotal),
+    };
+  }
+
+  /**
    * Registra atividade devocional/espiritual do dia e atualiza o streak.
    * A sequência só é perdida após 48h sem atividade.
    */

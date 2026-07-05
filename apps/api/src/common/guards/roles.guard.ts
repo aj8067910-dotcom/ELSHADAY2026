@@ -4,7 +4,7 @@ import { Role } from '@prisma/client';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
 // Hierarquia: quem está acima herda as permissões de quem está abaixo.
-const HIERARCHY: Role[] = [
+export const HIERARCHY: Role[] = [
   Role.VISITANTE,
   Role.MEMBRO,
   Role.VICE_LIDER,

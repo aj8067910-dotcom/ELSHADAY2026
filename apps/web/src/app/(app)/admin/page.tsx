@@ -10,6 +10,7 @@ import type { ChurchEvent, Me } from '@/lib/types';
 import { LEADERSHIP_ROLES } from '@/lib/types';
 import { EmptyState, GlassCard, Spinner } from '@/components/ui';
 import { useXpToast } from '@/components/xp-toast';
+import { AdminMembers } from '@/components/admin-members';
 
 const EVENT_TYPES = [
   ['CULTO', '⛪ Culto'],
@@ -411,6 +412,8 @@ export default function AdminPage() {
       ) : (
         <EmptyState emoji="📅" title="Nenhum evento criado ainda" />
       )}
+
+      <AdminMembers me={me} />
     </div>
   );
 }
