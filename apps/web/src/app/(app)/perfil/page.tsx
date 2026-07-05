@@ -1,9 +1,13 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api';
-import type { GamificationSummary, Me } from '@/lib/types';
+import { useState } from 'react';
+import Link from 'next/link';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { api, patch } from '@/lib/api';
+import type { GamificationSummary, Me, Member } from '@/lib/types';
+import { LEADERSHIP_ROLES } from '@/lib/types';
 import { Avatar, GlassCard, Spinner, XpBar } from '@/components/ui';
+import { useXpToast } from '@/components/xp-toast';
 
 const AREA_LABELS: Record<string, string> = {
   PALAVRA: '📖 Palavra',
@@ -13,6 +17,101 @@ const AREA_LABELS: Record<string, string> = {
   EVANGELISMO: '🌍 Evangelismo',
   ADORACAO: '🎵 Adoração',
 };
+
+function DuoCard({ me }: { me: Me }) {
+  const queryClient = useQueryClient();
+  const { show } = useXpToast();
+  const [choosing, setChoosing] = useState(false);
+  const [partnerId, setPartnerId] = useState('');
+
+  const { data: members } = useQuery({
+    queryKey: ['members'],
+    queryFn: () => api<Member[]>('/users/members'),
+    enabled: choosing,
+  });
+
+  const save = useMutation({
+    mutationFn: (id: string | null) => patch('/users/me/duo', { partnerId: id }),
+    onSuccess: (_data, id) => {
+      setChoosing(false);
+      show(id ? 'Dupla formada! 🤝' : 'Dupla desfeita');
+      queryClient.invalidateQueries({ queryKey: ['me'] });
+    },
+    onError: (e) => show('Ops!', e instanceof Error ? e.message : 'Erro'),
+  });
+
+  return (
+    <GlassCard delay={0.08}>
+      <h2 className="mb-1 font-display text-sm font-semibold uppercase tracking-widest text-zinc-400">
+        Parceiro espiritual 🤝
+      </h2>
+      <p className="mb-3 text-xs text-zinc-600">
+        Escolham um ao outro e orem um pelo outro todos os dias.
+      </p>
+
+      {me.duoPartner && !choosing ? (
+        <div className="flex items-center gap-3">
+          <Avatar
+            name={me.duoPartner.name}
+            src={me.duoPartner.avatarUrl}
+            size={44}
+          />
+          <div className="flex-1">
+            <p className="font-medium">
+              {me.duoPartner.nickname || me.duoPartner.name}
+            </p>
+            <p className="text-xs text-zinc-500">sua dupla de oração</p>
+          </div>
+          <button
+            className="btn-ghost px-3 py-1.5 text-xs"
+            onClick={() => setChoosing(true)}
+          >
+            Trocar
+          </button>
+          <button
+            className="btn-ghost px-3 py-1.5 text-xs text-zinc-500"
+            onClick={() => save.mutate(null)}
+          >
+            Remover
+          </button>
+        </div>
+      ) : choosing ? (
+        <div className="space-y-3">
+          <select
+            className="input"
+            value={partnerId}
+            onChange={(e) => setPartnerId(e.target.value)}
+          >
+            <option value="">Escolha alguém da família...</option>
+            {members
+              ?.filter((m) => m.id !== me.id)
+              .map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.nickname || m.name}
+                </option>
+              ))}
+          </select>
+          <div className="flex gap-2">
+            <button
+              className="btn-gold flex-1"
+              disabled={!partnerId || save.isPending}
+              onClick={() => save.mutate(partnerId)}
+            >
+              Formar dupla 🤝
+            </button>
+            <button className="btn-ghost" onClick={() => setChoosing(false)}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button className="btn-ghost w-full" onClick={() => setChoosing(true)}>
+          Escolher meu parceiro espiritual
+        </button>
+      )}
+    </GlassCard>
+  );
+}
 
 export default function PerfilPage() {
   const { data: me } = useQuery({
@@ -71,6 +170,24 @@ export default function PerfilPage() {
           )}
         </div>
       </GlassCard>
+
+      {LEADERSHIP_ROLES.includes(me.role) && (
+        <Link
+          href="/admin"
+          className="glass glass-hover flex items-center gap-3 p-4"
+        >
+          <span className="text-2xl">🛡️</span>
+          <div className="flex-1">
+            <p className="font-medium">Painel da liderança</p>
+            <p className="text-xs text-zinc-500">
+              Criar eventos, gerar QR de check-in, relatórios
+            </p>
+          </div>
+          <span className="text-zinc-600">→</span>
+        </Link>
+      )}
+
+      <DuoCard me={me} />
 
       {/* progresso */}
       <GlassCard delay={0.05}>

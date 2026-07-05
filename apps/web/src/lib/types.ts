@@ -36,7 +36,25 @@ export interface Me {
   level: LevelInfo;
   team?: { id: string; name: string; color: string };
   leader?: { id: string; name: string };
+  duoPartnerId?: string | null;
+  duoPartner?: {
+    id: string;
+    name: string;
+    nickname?: string;
+    avatarUrl?: string;
+  } | null;
 }
+
+export interface Member {
+  id: string;
+  name: string;
+  nickname?: string;
+  avatarUrl?: string;
+  role: string;
+  teamId?: string;
+}
+
+export const LEADERSHIP_ROLES = ['ADMIN', 'PASTOR', 'LIDER', 'VICE_LIDER'];
 
 export interface Devotional {
   id: string;
@@ -96,6 +114,8 @@ export interface ChurchEvent {
   location?: string;
   xpReward: number;
   myStatus: 'CONFIRMADO' | 'CHECKIN' | null;
+  // visível apenas para a liderança (GET /events/:id)
+  checkinCode?: string;
   _count: { attendances: number };
 }
 

@@ -121,6 +121,25 @@ export default function HomePage() {
         </GlassCard>
       )}
 
+      {/* lembrete da dupla espiritual */}
+      {me.duoPartner && (
+        <GlassCard delay={0.09} className="border-gold-500/10">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🤝</span>
+            <p className="flex-1 text-sm">
+              Ore hoje por{' '}
+              <span className="font-semibold text-gold-300">
+                {me.duoPartner.nickname || me.duoPartner.name}
+              </span>
+              , sua dupla espiritual. 🤍
+            </p>
+            <Link href="/oracao" className="btn-ghost px-3 py-1.5 text-xs">
+              Orar
+            </Link>
+          </div>
+        </GlassCard>
+      )}
+
       {/* devocional do dia */}
       <Link href="/devocional" className="block">
         <GlassCard className="glass-hover" delay={0.1}>

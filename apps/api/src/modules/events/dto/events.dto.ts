@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { EventType } from '@prisma/client';
 import {
   IsDateString,
@@ -23,6 +23,8 @@ export class CreateEventDto {
   @ApiPropertyOptional() @IsOptional() @IsNumber() lng?: number;
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(0) xpReward?: number;
 }
+
+export class UpdateEventDto extends PartialType(CreateEventDto) {}
 
 export class CheckinDto {
   @ApiProperty({ description: 'Código lido do QR Code do evento' })

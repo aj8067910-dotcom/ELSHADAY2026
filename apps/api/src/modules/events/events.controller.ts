@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -14,7 +16,7 @@ import {
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { CheckinDto, CreateEventDto } from './dto/events.dto';
+import { CheckinDto, CreateEventDto, UpdateEventDto } from './dto/events.dto';
 import { EventsService } from './events.service';
 
 @ApiTags('events')
@@ -43,6 +45,22 @@ export class EventsController {
   @Get(':id')
   get(@CurrentUser() user: AuthUser, @Param('id') id: string) {
     return this.events.get(id, user.id, user.role);
+  }
+
+  @Patch(':id')
+  @Roles('VICE_LIDER')
+  update(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body() dto: UpdateEventDto,
+  ) {
+    return this.events.update(user.churchId, id, dto);
+  }
+
+  @Delete(':id')
+  @Roles('LIDER')
+  remove(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.events.remove(user.churchId, id);
   }
 
   @Post(':id/confirm')

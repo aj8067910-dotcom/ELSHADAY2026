@@ -3,19 +3,23 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import {
   BookOpen,
   CalendarDays,
   Home,
   Image as ImageIcon,
   LogOut,
+  Shield,
   Sparkles,
   Target,
   Trophy,
   User,
 } from 'lucide-react';
 import clsx from 'clsx';
-import { clearTokens, post } from '@/lib/api';
+import { api, clearTokens, post } from '@/lib/api';
+import type { Me } from '@/lib/types';
+import { LEADERSHIP_ROLES } from '@/lib/types';
 
 const ITEMS = [
   { href: '/home', label: 'Início', icon: Home },
@@ -32,6 +36,18 @@ const ITEMS = [
 export function Nav() {
   const pathname = usePathname();
   const router = useRouter();
+
+  const { data: me } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => api<Me>('/users/me'),
+    staleTime: 5 * 60_000,
+  });
+  const items = [
+    ...ITEMS,
+    ...(me && LEADERSHIP_ROLES.includes(me.role)
+      ? [{ href: '/admin', label: 'Admin', icon: Shield }]
+      : []),
+  ];
 
   const logout = async () => {
     try {
@@ -53,7 +69,7 @@ export function Nav() {
             ELSHADAY
           </span>
         </Link>
-        {ITEMS.map(({ href, label, icon: Icon }) => {
+        {items.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href);
           return (
             <Link

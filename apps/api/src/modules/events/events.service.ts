@@ -6,7 +6,7 @@ import {
 import { EventType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GamificationService } from '../gamification/gamification.service';
-import { CheckinDto, CreateEventDto } from './dto/events.dto';
+import { CheckinDto, CreateEventDto, UpdateEventDto } from './dto/events.dto';
 
 const EVENT_AREA: Record<EventType, 'COMUNHAO' | 'EVANGELISMO' | 'ADORACAO' | 'SERVICO'> = {
   CULTO: 'ADORACAO',
@@ -48,6 +48,42 @@ export class EventsService {
         xpReward: dto.xpReward ?? 80,
       },
     });
+  }
+
+  async update(churchId: string, id: string, dto: UpdateEventDto) {
+    const event = await this.prisma.event.findFirst({
+      where: { id, churchId },
+    });
+    if (!event) throw new NotFoundException('Evento não encontrado.');
+
+    return this.prisma.event.update({
+      where: { id },
+      data: {
+        ...(dto.type !== undefined ? { type: dto.type } : {}),
+        ...(dto.title !== undefined ? { title: dto.title } : {}),
+        ...(dto.description !== undefined ? { description: dto.description } : {}),
+        ...(dto.bannerUrl !== undefined ? { bannerUrl: dto.bannerUrl } : {}),
+        ...(dto.startsAt !== undefined ? { startsAt: new Date(dto.startsAt) } : {}),
+        ...(dto.endsAt !== undefined ? { endsAt: new Date(dto.endsAt) } : {}),
+        ...(dto.location !== undefined ? { location: dto.location } : {}),
+        ...(dto.lat !== undefined ? { lat: dto.lat } : {}),
+        ...(dto.lng !== undefined ? { lng: dto.lng } : {}),
+        ...(dto.xpReward !== undefined ? { xpReward: dto.xpReward } : {}),
+      },
+    });
+  }
+
+  async remove(churchId: string, id: string) {
+    const event = await this.prisma.event.findFirst({
+      where: { id, churchId },
+    });
+    if (!event) throw new NotFoundException('Evento não encontrado.');
+
+    await this.prisma.$transaction([
+      this.prisma.eventAttendance.deleteMany({ where: { eventId: id } }),
+      this.prisma.event.delete({ where: { id } }),
+    ]);
+    return { ok: true };
   }
 
   list(churchId: string, userId: string) {

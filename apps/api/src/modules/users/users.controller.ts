@@ -15,6 +15,10 @@ import {
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { UsersService } from './users.service';
 
+class SetDuoDto {
+  @IsOptional() @IsString() partnerId?: string | null;
+}
+
 class UpdateMeDto {
   @IsOptional() @IsString() name?: string;
   @IsOptional() @IsString() nickname?: string;
@@ -41,6 +45,16 @@ export class UsersController {
   @Patch('me')
   updateMe(@CurrentUser() user: AuthUser, @Body() dto: UpdateMeDto) {
     return this.users.updateMe(user.id, dto);
+  }
+
+  @Get('members')
+  members(@CurrentUser() user: AuthUser) {
+    return this.users.listMembers(user.churchId);
+  }
+
+  @Patch('me/duo')
+  setDuo(@CurrentUser() user: AuthUser, @Body() dto: SetDuoDto) {
+    return this.users.setDuoPartner(user.id, user.churchId, dto.partnerId ?? null);
   }
 
   @Get('birthdays/today')
