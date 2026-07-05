@@ -55,6 +55,17 @@ npm install
 npm run dev                 # http://localhost:3000
 ```
 
+### ☁️ Deploy no Render
+
+O repositório inclui um blueprint [`render.yaml`](render.yaml) que provisiona tudo (PostgreSQL + API + Web):
+
+1. No dashboard do Render: **New → Blueprint** e selecione este repositório.
+2. **Importante:** em *Branch*, selecione a branch que contém o código (a `main` só terá o código após o merge).
+3. O Render cria os 3 recursos; a API migra o banco e roda as seeds automaticamente no primeiro start.
+4. Se o serviço da API for criado com um nome diferente de `elshaday-api`, ajuste a variável `API_URL` do serviço web para a URL pública correta da API.
+
+> ⚠️ Erro comum: *"Exited with status 1 while building your code"* logo no primeiro deploy geralmente significa que o Render está buildando uma branch **sem o código** (ex.: `main` apenas com README) ou sem o `render.yaml`. Confira a branch nas configurações do serviço.
+
 ### Logins de demonstração (seeds)
 
 | Papel | E-mail | Senha |
