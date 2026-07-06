@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GrowthAreaKey } from '@prisma/client';
+import { sameBrtDay } from '../../common/brt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { levelFromXp } from './levels';
 
@@ -160,7 +161,8 @@ export class GamificationService {
     if (!last) {
       current = 1;
     } else {
-      const sameDay = last.toDateString() === now.toDateString();
+      // mesmo dia no calendário de Brasília (não no UTC do servidor)
+      const sameDay = sameBrtDay(last, now);
       if (sameDay) {
         // já contou hoje
         return this.prisma.streak.update({

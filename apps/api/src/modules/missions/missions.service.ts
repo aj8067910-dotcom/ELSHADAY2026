@@ -3,15 +3,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { todayBrt } from '../../common/brt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GamificationService } from '../gamification/gamification.service';
 import { CreateMissionDto, UpdateMissionDto } from './dto/missions.dto';
 
-function todayDate(): Date {
-  const d = new Date();
-  d.setUTCHours(0, 0, 0, 0);
-  return d;
-}
+// o "dia" das missões segue o calendário de Brasília
+const todayDate = () => todayBrt();
 
 @Injectable()
 export class MissionsService {

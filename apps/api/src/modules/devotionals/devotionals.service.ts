@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { todayBrt } from '../../common/brt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GamificationService } from '../gamification/gamification.service';
 import { XP_REWARDS } from '../gamification/levels';
@@ -26,8 +27,8 @@ export class DevotionalsService {
     const date = new Date(dto.date);
     date.setUTCHours(0, 0, 0, 0);
 
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
+    // "hoje" segue o calendário de Brasília
+    const today = todayBrt();
 
     if (date.getTime() <= today.getTime()) {
       throw new BadRequestException(
@@ -71,10 +72,9 @@ export class DevotionalsService {
   }
 
   async today(churchId: string, userId: string) {
-    const start = new Date();
-    start.setUTCHours(0, 0, 0, 0);
-    const end = new Date(start);
-    end.setUTCDate(end.getUTCDate() + 1);
+    // o dia devocional vira à meia-noite de Brasília, não do UTC
+    const start = todayBrt();
+    const end = new Date(start.getTime() + 86_400_000);
 
     let devotional = await this.prisma.devotional.findFirst({
       where: { churchId, date: { gte: start, lt: end } },
@@ -103,12 +103,15 @@ export class DevotionalsService {
     return { ...rest, completedByMe: completions.length > 0 };
   }
 
-  /** Publica automaticamente a entrada do dia a partir do banco anual. */
+  /**
+   * Publica automaticamente a entrada do dia a partir do banco anual.
+   * `date` já é o dia do calendário brasileiro (meia-noite em UTC).
+   */
   private async publishFromBank(churchId: string, date: Date) {
     const startOfYear = Date.UTC(date.getUTCFullYear(), 0, 1);
     let dayOfYear =
       Math.floor((date.getTime() - startOfYear) / 86_400_000) + 1;
-    if (dayOfYear > 365) dayOfYear = 365; // 29/12 em ano bissexto reaproveita o dia 365
+    if (dayOfYear > 365) dayOfYear = 365; // 31/12 em ano bissexto reaproveita o dia 365
 
     const entry = await this.prisma.devotionalBankEntry.findUnique({
       where: { dayIndex: dayOfYear },

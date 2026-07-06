@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { todayBrt } from '../../common/brt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { levelFromXp } from '../gamification/levels';
 
@@ -132,13 +133,13 @@ export class UsersService {
     });
   }
 
-  /** Aniversariantes do dia — a Home celebra junto. 🎂 */
+  /** Aniversariantes do dia (calendário de Brasília) — a Home celebra junto. 🎂 */
   async birthdaysToday(churchId: string) {
     const users = await this.prisma.user.findMany({
       where: { churchId, birthDate: { not: null } },
       select: { id: true, name: true, nickname: true, avatarUrl: true, birthDate: true },
     });
-    const today = new Date();
+    const today = todayBrt();
     return users.filter(
       (u) =>
         u.birthDate!.getUTCDate() === today.getUTCDate() &&
