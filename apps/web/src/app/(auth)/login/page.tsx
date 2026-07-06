@@ -77,6 +77,12 @@ export default function LoginPage() {
         <button className="btn-brand w-full" disabled={isSubmitting}>
           {isSubmitting ? 'Entrando...' : 'Entrar'}
         </button>
+        {isSubmitting && (
+          <p className="text-center text-xs text-zinc-500">
+            Se o app ficou um tempo sem uso, o servidor pode levar até 1
+            minuto para acordar. Aguarde... ⏳
+          </p>
+        )}
         <div className="flex items-center justify-between text-sm">
           <Link href="/register" className="text-brand-300 hover:underline">
             Criar conta
