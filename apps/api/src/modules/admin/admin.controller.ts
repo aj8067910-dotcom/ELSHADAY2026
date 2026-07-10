@@ -223,6 +223,34 @@ export class AdminController {
     return { ok: true };
   }
 
+  /**
+   * Histórico de pontos do membro: cada lançamento com motivo, valor
+   * e horário — inclui ganhos por atividade e ajustes da liderança.
+   */
+  @Get('users/:id/xp-history')
+  async xpHistory(@CurrentUser() actor: AuthUser, @Param('id') id: string) {
+    const target = await this.prisma.user.findFirst({
+      where: { id, churchId: actor.churchId },
+      select: { id: true, name: true, nickname: true, xpTotal: true },
+    });
+    if (!target) throw new NotFoundException('Membro não encontrado.');
+
+    const entries = await this.prisma.xpTransaction.findMany({
+      where: { userId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      select: {
+        id: true,
+        amount: true,
+        reason: true,
+        area: true,
+        refType: true,
+        createdAt: true,
+      },
+    });
+    return { user: target, entries };
+  }
+
   /** Adiciona ou desconta XP de um membro, com motivo registrado. */
   @Post('users/:id/xp')
   async adjustXp(

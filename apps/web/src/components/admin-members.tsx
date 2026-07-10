@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Pencil, Search, Sparkles, Trash2, X } from 'lucide-react';
+import { History, Pencil, Search, Sparkles, Trash2, X } from 'lucide-react';
 import { api, patch, post } from '@/lib/api';
 import type { Me } from '@/lib/types';
 import { Avatar, GlassCard, Spinner } from '@/components/ui';
@@ -49,6 +49,91 @@ const ROLE_LABELS: Record<string, string> = {
   MEMBRO: '🤝 Membro',
   VISITANTE: '👋 Visitante',
 };
+
+const AREA_EMOJI: Record<string, string> = {
+  PALAVRA: '📖',
+  ORACAO: '🙏',
+  SERVICO: '❤️',
+  COMUNHAO: '🤝',
+  EVANGELISMO: '🌍',
+  ADORACAO: '🎵',
+};
+
+interface XpEntry {
+  id: string;
+  amount: number;
+  reason: string;
+  area?: string | null;
+  refType?: string | null;
+  createdAt: string;
+}
+
+function XpHistory({ user }: { user: AdminUser }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['xp-history', user.id],
+    queryFn: () =>
+      api<{ user: { xpTotal: number }; entries: XpEntry[] }>(
+        `/admin/users/${user.id}/xp-history`,
+      ),
+  });
+
+  if (isLoading)
+    return <p className="mt-3 py-4 text-center text-sm text-zinc-500">Carregando histórico...</p>;
+
+  return (
+    <div className="mt-3 space-y-2 rounded-2xl bg-white/[0.03] p-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs uppercase tracking-widest text-zinc-500">
+          Histórico de pontos · {user.nickname || user.name}
+        </p>
+        <span className="font-display text-sm font-bold brand-text">
+          {(data?.user.xpTotal ?? 0).toLocaleString('pt-BR')} XP
+        </span>
+      </div>
+      {data && data.entries.length > 0 ? (
+        <div className="max-h-80 space-y-1 overflow-y-auto pr-1">
+          {data.entries.map((entry) => (
+            <div
+              key={entry.id}
+              className="flex items-center gap-3 rounded-xl bg-white/[0.03] px-3 py-2"
+            >
+              <span className="text-base">
+                {entry.refType === 'ajuste'
+                  ? '🛡️'
+                  : (AREA_EMOJI[entry.area ?? ''] ?? '⭐')}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-zinc-200">{entry.reason}</p>
+                <p className="text-[11px] text-zinc-500">
+                  {new Date(entry.createdAt).toLocaleString('pt-BR', {
+                    timeZone: 'America/Sao_Paulo',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </p>
+              </div>
+              <span
+                className={`font-display text-sm font-bold ${
+                  entry.amount >= 0 ? 'text-emerald-400' : 'text-red-400'
+                }`}
+              >
+                {entry.amount >= 0 ? '+' : ''}
+                {entry.amount}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="py-3 text-center text-sm text-zinc-500">
+          Nenhum ponto registrado ainda.
+        </p>
+      )}
+    </div>
+  );
+}
 
 function XpAdjuster({
   user,
@@ -274,8 +359,13 @@ export function AdminMembers({ me }: { me: Me }) {
   const [search, setSearch] = useState('');
   const [openPanel, setOpenPanel] = useState<{
     id: string;
-    mode: 'edit' | 'xp';
+    mode: 'edit' | 'xp' | 'history';
   } | null>(null);
+
+  const togglePanel = (id: string, mode: 'edit' | 'xp' | 'history') =>
+    setOpenPanel(
+      openPanel?.id === id && openPanel.mode === mode ? null : { id, mode },
+    );
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
@@ -353,28 +443,23 @@ export function AdminMembers({ me }: { me: Me }) {
                   </p>
                 </div>
                 <button
+                  className="rounded-xl border border-white/10 p-2 text-zinc-400 transition-colors hover:text-brand-300"
+                  title="Histórico de pontos"
+                  onClick={() => togglePanel(user.id, 'history')}
+                >
+                  <History size={18} />
+                </button>
+                <button
                   className="rounded-xl border border-brand-500/30 p-2 text-brand-300 transition-colors hover:bg-brand-500/10"
                   title="Ajustar XP"
-                  onClick={() =>
-                    setOpenPanel(
-                      openPanel?.id === user.id && openPanel.mode === 'xp'
-                        ? null
-                        : { id: user.id, mode: 'xp' },
-                    )
-                  }
+                  onClick={() => togglePanel(user.id, 'xp')}
                 >
                   <Sparkles size={18} />
                 </button>
                 <button
                   className="rounded-xl border border-white/10 p-2 text-zinc-400 transition-colors hover:text-zinc-200"
                   title="Editar cadastro"
-                  onClick={() =>
-                    setOpenPanel(
-                      openPanel?.id === user.id && openPanel.mode === 'edit'
-                        ? null
-                        : { id: user.id, mode: 'edit' },
-                    )
-                  }
+                  onClick={() => togglePanel(user.id, 'edit')}
                 >
                   <Pencil size={18} />
                 </button>
@@ -406,6 +491,8 @@ export function AdminMembers({ me }: { me: Me }) {
                   >
                     {openPanel.mode === 'xp' ? (
                       <XpAdjuster user={user} onDone={refresh} />
+                    ) : openPanel.mode === 'history' ? (
+                      <XpHistory user={user} />
                     ) : (
                       <MemberEditor
                         user={user}
