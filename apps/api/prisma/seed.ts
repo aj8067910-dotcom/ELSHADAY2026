@@ -75,6 +75,21 @@ async function main() {
     });
   }
 
+  // -----------------------------------------------------------------
+  // Dados de DEMONSTRAÇÃO: criados apenas na PRIMEIRA inicialização.
+  // As seeds rodam a cada deploy/reinício — sem esta trava, usuários,
+  // missões e eventos apagados pela liderança voltariam sozinhos.
+  // -----------------------------------------------------------------
+  const existingUsers = await prisma.user.count({
+    where: { churchId: church.id },
+  });
+  if (existingUsers > 0) {
+    console.log(
+      `✅ Seeds essenciais ok (${existingUsers} usuários já existem — demo ignorada).`,
+    );
+    return;
+  }
+
   const teamLeao = await prisma.team.upsert({
     where: { id: 'seed-team-leao' },
     update: {},
