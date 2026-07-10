@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookOpen, Plus, X } from 'lucide-react';
+import { BookOpen, Plus, Trash2, X } from 'lucide-react';
 import { api, post } from '@/lib/api';
 import type { Devotional } from '@/lib/types';
 import { GlassCard } from '@/components/ui';
@@ -37,7 +37,23 @@ export function AdminDevotional() {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const scheduled = devotionals?.filter((d) => new Date(d.date) > today) ?? [];
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  // hoje + agendados, com opção de excluir (o banco de 365 dias
+  // republica o dia excluído na próxima abertura do app)
+  const upcoming =
+    devotionals
+      ?.filter((d) => d.date.slice(0, 10) >= todayStr)
+      .sort((a, b) => a.date.localeCompare(b.date)) ?? [];
+
+  const remove = useMutation({
+    mutationFn: (id: string) => api(`/devotionals/${id}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      show('Devocional excluído', 'O banco anual assume este dia');
+      queryClient.invalidateQueries({ queryKey: ['devotionals'] });
+      queryClient.invalidateQueries({ queryKey: ['devotional-today'] });
+    },
+    onError: (e) => show('Ops!', e instanceof Error ? e.message : 'Erro'),
+  });
 
   const publish = useMutation({
     mutationFn: () =>
@@ -160,27 +176,41 @@ export function AdminDevotional() {
         )}
       </AnimatePresence>
 
-      {scheduled.length > 0 && (
+      {upcoming.length > 0 && (
         <div className="space-y-2">
-          {scheduled
-            .sort((a, b) => a.date.localeCompare(b.date))
-            .map((d) => (
-              <GlassCard key={d.id} className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{d.theme}</p>
-                    <p className="text-xs text-zinc-500">{d.verseRef}</p>
-                  </div>
-                  <span className="rounded-full bg-brand-500/10 px-3 py-1 text-xs font-medium text-brand-300">
-                    {new Date(d.date).toLocaleDateString('pt-BR', {
-                      day: '2-digit',
-                      month: 'short',
-                      timeZone: 'UTC',
-                    })}
-                  </span>
+          {upcoming.map((d, i) => (
+            <GlassCard key={d.id} className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <p className="font-medium">{d.theme}</p>
+                  <p className="text-xs text-zinc-500">{d.verseRef}</p>
                 </div>
-              </GlassCard>
-            ))}
+                <span className="rounded-full bg-brand-500/10 px-3 py-1 text-xs font-medium text-brand-300">
+                  {d.date.slice(0, 10) === todayStr
+                    ? 'hoje'
+                    : new Date(d.date).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: 'short',
+                        timeZone: 'UTC',
+                      })}
+                </span>
+                <button
+                  className="rounded-xl border border-white/10 p-2 text-zinc-500 transition-colors hover:border-red-500/30 hover:text-red-400"
+                  title="Excluir devocional (o banco anual assume)"
+                  onClick={() => {
+                    if (
+                      confirm(
+                        `Excluir "${d.theme}"? O banco de 365 dias publicará o conteúdo do dia no lugar. Quem já concluiu este devocional perderá a marcação.`,
+                      )
+                    )
+                      remove.mutate(d.id);
+                  }}
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </GlassCard>
+          ))}
         </div>
       )}
     </section>

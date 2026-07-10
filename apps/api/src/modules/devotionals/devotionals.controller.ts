@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -46,6 +47,12 @@ export class DevotionalsController {
   @Get('favorites')
   favorites(@CurrentUser() user: AuthUser) {
     return this.devotionals.favorites(user.id);
+  }
+
+  @Delete(':id')
+  @Roles('LIDER')
+  remove(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.devotionals.remove(user.churchId, id);
   }
 
   @Post(':id/complete')

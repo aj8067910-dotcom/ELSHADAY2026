@@ -59,6 +59,26 @@ export class DevotionalsService {
     }
   }
 
+  /**
+   * Exclui um devocional (e as conclusões ligadas a ele). Útil quando um
+   * conteúdo errado ocupou o dia — o banco de 365 dias republica na
+   * próxima abertura do app.
+   */
+  async remove(churchId: string, id: string) {
+    const devotional = await this.prisma.devotional.findFirst({
+      where: { id, churchId },
+    });
+    if (!devotional) throw new NotFoundException('Devocional não encontrado.');
+
+    await this.prisma.$transaction([
+      this.prisma.devotionalCompletion.deleteMany({
+        where: { devotionalId: id },
+      }),
+      this.prisma.devotional.delete({ where: { id } }),
+    ]);
+    return { ok: true };
+  }
+
   list(churchId: string) {
     return this.prisma.devotional.findMany({
       where: { churchId },
